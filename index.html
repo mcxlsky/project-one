@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project One</title>
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8f7f5, #ede9e3, #f4f1ee, #fafafa, #ede8e1);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease infinite;
+      color: #0a0a0a;
+      height: 100vh;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'HTF Didot', 'Didot', 'GFS Didot', 'Bodoni MT', 'Playfair Display', serif;
+      font-size: clamp(5rem, 14vw, 14rem);
+      font-weight: 400;
+      line-height: 0.88;
+      letter-spacing: -0.02em;
+      background: linear-gradient(120deg, #0a0a0a, #3a3a3a, #111, #555, #1a1a1a, #0a0a0a);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeUp 1.2s ease 0.4s forwards, textGradient 8s ease infinite;
+      opacity: 0;
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    h1 .word-one {
+      font-style: italic;
+    }
+
+    .subtitle {
+      margin-top: 2rem;
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+      font-weight: 400;
+      font-style: normal;
+      letter-spacing: 0.35em;
+      color: rgba(10,10,10,0.45);
+      opacity: 0;
+      animation: fadeUp 1.2s ease 0.8s forwards;
+    }
+
+    @keyframes textGradient {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="container">
+    <h1>
+      <span class="word-project">Project</span>
+      <span class="word-one">One</span>
+    </h1>
+    <p class="subtitle">Coming Soon</p>
+  </div>
+</body>
+</html>
