@@ -12,5 +12,8 @@
     "axios": "^1.7.9",
     "cors": "^2.8.5",
     "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^4.2.5"
   }
 }
