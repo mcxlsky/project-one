@@ -71,6 +71,24 @@
       animation: fadeUp 1.2s ease 0.8s forwards;
     }
 
+    .launcher-link {
+      display: inline-block;
+      margin-top: 3rem;
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #0a0a0a;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      opacity: 0;
+      animation: fadeUp 1.2s ease 1.2s forwards;
+    }
+
+    .launcher-link:hover {
+      opacity: 0.6;
+      transform: translateY(-2px);
+    }
+
     @keyframes textGradient {
       0%   { background-position: 0% 50%; }
       50%  { background-position: 100% 50%; }
@@ -96,7 +114,8 @@
       <span class="word-project">Project</span>
       <span class="word-one">One</span>
     </h1>
-    <p class="subtitle">Coming Soon</p>
+
+    <a href="/checker.html" class="launcher-link">Launch Brand Engine &rarr;</a>
   </div>
 </body>
 </html>

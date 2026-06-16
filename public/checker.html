@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hatch - Find Your Brand & Domain</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS stylesheet -->
+    <link rel="stylesheet" href="index.css?v=3">
+</head>
+<body>
+    <div class="noise"></div>
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <a href="/" class="logo" style="text-decoration: none; color: inherit;">
+
+                <span class="logo-text">Project One</span>
+            </a>
+            <button class="menu-btn" aria-label="Menu">
+                <span class="menu-line"></span>
+                <span class="menu-line"></span>
+            </button>
+        </div>
+    </nav>
+    
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Find your brand</h1>
+            <p class="subtitle">Check availability across domains and social networks simultaneously. Includes spelling variations and smart suggestions.</p>
+        </header>
+
+        <main class="search-section">
+            <form id="search-form" class="chatbot-input-container">
+                <div class="chatbot-textarea-wrapper">
+                    <textarea 
+                        id="brand-input" 
+                        placeholder="What's your brand's name?"
+                        required
+                    ></textarea>
+                    <button type="submit" id="search-button" aria-label="Find Brand Names">
+                        <i class="fa-solid fa-arrow-right button-icon"></i>
+                    </button>
+                </div>
+                <div id="chatbot-footer" class="chatbot-input-footer" style="display: none;">
+                    <div id="footer-left">
+                        <div id="input-chips"></div>
+                    </div>
+
+                </div>
+            </form>
+
+            <!-- Result tiles appear directly under input -->
+            <div class="best-options-list" id="best-options-list">
+                <!-- Cards populated dynamically -->
+            </div>
+
+            <div id="results-dashboard" class="results-dashboard hidden">
+
+                <!-- Unified Assets Section -->
+                <section class="results-section" id="assets-section">
+                    <div class="section-header">
+                        <h2>Domains & Social Handles</h2>
+                    </div>
+                    <div class="results-list" id="assets-list">
+                        <!-- Items populated dynamically -->
+                    </div>
+                </section>
+
+                <!-- Export & Action Bar -->
+                <div class="action-bar">
+                    <div class="status-summary" id="status-summary">
+                        <!-- Summary metrics -->
+                    </div>
+                    <div class="action-buttons">
+                        <button id="grab-pack-btn" class="btn btn-brand-pack">
+                            <i class="fa-solid fa-cart-shopping"></i> Claim Brand Selection (0)
+                        </button>
+                        <button id="copy-report-btn" class="btn btn-secondary">
+                            <i class="fa-regular fa-copy"></i> Copy Summary
+                        </button>
+                        <button id="export-csv-btn" class="btn btn-primary">
+                            <i class="fa-solid fa-file-csv"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>Project One &copy; 2026. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Brand Pack Claim Modal -->
+    <div id="brand-pack-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Claim Your Brand Pack</h2>
+                <button type="button" class="modal-close-btn" id="modal-close-btn" aria-label="Close modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-intro">Grab all available assets for <strong id="modal-brand-name">hatch</strong> in one swoop. Secured domains are compiled below, and social profiles can be claimed instantly.</p>
+                
+                <div class="modal-section">
+                    <h3><i class="fa-solid fa-globe"></i> Domains to Register</h3>
+                    <div class="modal-list" id="modal-domains-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <button type="button" id="modal-bulk-domains-btn" class="btn btn-primary modal-action-btn">
+                        <i class="fa-solid fa-cart-shopping"></i> Register All Available Domains
+                    </button>
+                </div>
+
+                <div class="modal-section">
+                    <h3><i class="fa-solid fa-share-nodes"></i> Claim Social Handles</h3>
+                    <div class="modal-list" id="modal-socials-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <button type="button" id="modal-bulk-socials-btn" class="btn btn-secondary modal-action-btn">
+                        <i class="fa-solid fa-up-right-from-square"></i> Open All Claim Pages
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script file -->
+    <script src="index.js?v=3"></script>
+</body>
+</html>
