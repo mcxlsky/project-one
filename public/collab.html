@@ -26,40 +26,26 @@
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--surface-0);
-      display: grid;
-      place-items: center;
-      padding: 2rem 1rem;
+      margin: 0; min-height: 100vh; background: var(--surface-0);
+      display: grid; place-items: center; padding: 2rem 1rem;
       font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
-      color: var(--text-primary);
-      -webkit-font-smoothing: antialiased;
+      color: var(--text-primary); -webkit-font-smoothing: antialiased;
     }
     .disp { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; }
     #phone {
-      width: 390px;
-      max-width: 100%;
-      height: min(820px, 92vh);
-      background: var(--surface-2);
-      border: 0.5px solid var(--border);
-      border-radius: 24px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      width: 390px; max-width: 100%; height: min(820px, 92vh);
+      background: var(--surface-2); border: 0.5px solid var(--border);
+      border-radius: 24px; overflow: hidden;
+      display: flex; flex-direction: column;
       box-shadow: 0 24px 60px -30px rgba(20, 18, 12, 0.35);
+      position: relative;
     }
     .head {
-      padding: 15px 17px 13px;
-      border-bottom: 0.5px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      flex-shrink: 0;
+      padding: 15px 17px 13px; border-bottom: 0.5px solid var(--border);
+      display: flex; align-items: center; gap: 11px; flex-shrink: 0;
     }
-    #screen { flex: 1; overflow-y: auto; padding: 12px 15px 16px; }
+    #screen { flex: 1; overflow-y: auto; padding: 12px 15px 16px; scrollbar-width: none; }
     #screen::-webkit-scrollbar { width: 0; }
-    #screen { scrollbar-width: none; }
     .chips { display: flex; gap: 7px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; margin-bottom: 11px; }
     .chips::-webkit-scrollbar { display: none; }
     .chip {
@@ -86,7 +72,8 @@
     .add-btn:hover { background: var(--bg-accent); }
     .add-btn.added { background: var(--text-accent); color: #fff; border-color: var(--text-accent); cursor: default; }
     .btn-mini {
-      font-size: 12px; padding: 7px 13px; border-radius: 10px;
+      font-family: 'Manrope', sans-serif; font-size: 12px;
+      padding: 7px 13px; border-radius: 10px;
       border: 0.5px solid var(--border-strong); background: transparent;
       color: var(--text-primary); cursor: pointer; font-weight: 500;
     }
@@ -94,14 +81,18 @@
     .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
     .thumb { position: relative; aspect-ratio: 4/5; border-radius: 9px; overflow: hidden; background: var(--surface-1); }
     .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .hero { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; background: var(--surface-1); }
+    .hero { position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; background: var(--surface-1); }
     .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    input {
-      font-family: 'Manrope', sans-serif; font-size: 13px; height: 36px; padding: 0 12px;
-      border: 0.5px solid var(--border-strong); border-radius: 10px;
+    input, textarea, select {
+      font-family: 'Manrope', sans-serif; font-size: 13px;
+      padding: 9px 12px; border: 0.5px solid var(--border-strong); border-radius: 10px;
       background: var(--surface-2); color: var(--text-primary); outline: none;
+      width: 100%;
     }
-    input:focus { border-color: var(--text-accent); box-shadow: 0 0 0 3px var(--bg-accent); }
+    input { height: 38px; padding: 0 12px; }
+    textarea { resize: none; font-family: 'Manrope', sans-serif; }
+    input:focus, textarea:focus, select:focus { border-color: var(--text-accent); box-shadow: 0 0 0 3px var(--bg-accent); }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
     .nav { display: flex; border-top: 0.5px solid var(--border); background: var(--surface-2); flex-shrink: 0; }
     .nav button {
       flex: 1; background: none; border: none; padding: 9px 0 11px;
@@ -110,47 +101,65 @@
     }
     .nav button i { font-size: 21px; }
     .nav button.active { color: var(--text-accent); font-weight: 600; }
+    .sheet {
+      position: absolute; inset: 0; z-index: 10;
+      background: rgba(20, 18, 12, 0.35);
+      display: flex; align-items: flex-end;
+    }
+    .sheet-body {
+      background: var(--surface-2); width: 100%;
+      border-radius: 20px 20px 0 0; padding: 18px 17px 20px;
+      max-height: 82%; overflow-y: auto;
+    }
+    .sheet-body.centered { border-radius: 20px; margin: auto; max-height: 92%; }
+    .sheet.center { align-items: center; padding: 0 12px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 11px; color: var(--text-secondary); margin: 0 0 5px; }
+    .banner { padding: 9px 11px; border-radius: 10px; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; margin-bottom: 11px; display: flex; align-items: center; gap: 8px; }
+    .banner.success { background: var(--bg-success); color: var(--text-success); }
+    .banner.warn { background: #fef3d7; color: #85541b; }
   </style>
 </head>
 <body>
   <div id="phone">
     <div class="head">
       <div style="flex:1; min-width:0;">
-        <p class="disp" style="margin:0; font-size:22px; font-weight:700; line-height:1.05;">Design Week SF</p>
-        <p style="margin:3px 0 0; font-size:12px; color:var(--text-secondary);">June 2026 · 214 attendees</p>
+        <p class="disp" id="event-name" style="margin:0; font-size:22px; font-weight:700; line-height:1.05;">Loading…</p>
+        <p id="event-sub" style="margin:3px 0 0; font-size:12px; color:var(--text-secondary);"></p>
       </div>
-      <span id="toast" style="font-size:12px; color:var(--text-success); opacity:0; transition:opacity .3s;">Request sent</span>
+      <span id="toast" style="font-size:12px; color:var(--text-success); opacity:0; transition:opacity .3s;"></span>
       <button id="collab-btn" aria-label="Your collabs" style="position:relative; border:0.5px solid var(--border); background:transparent; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-primary);">
         <i class="ti ti-messages" style="font-size:19px;" aria-hidden="true"></i>
-        <span id="collab-badge" style="position:absolute; top:-6px; right:-6px; min-width:17px; height:17px; padding:0 4px; border-radius:999px; background:var(--text-accent); color:#fff; font-size:10px; display:none; align-items:center; justify-content:center; font-weight:600;">1</span>
+        <span id="collab-badge" style="position:absolute; top:-6px; right:-6px; min-width:17px; height:17px; padding:0 4px; border-radius:999px; background:var(--text-accent); color:#fff; font-size:10px; display:none; align-items:center; justify-content:center; font-weight:600;">0</span>
       </button>
     </div>
     <div id="screen"></div>
-    <div class="nav">
-      <button data-tab="feed"><i class="ti ti-photo" aria-hidden="true"></i>Feed</button>
+    <div class="nav" id="nav">
+      <button data-tab="feed" class="active"><i class="ti ti-photo" aria-hidden="true"></i>Feed</button>
       <button data-tab="classifieds"><i class="ti ti-clipboard-text" aria-hidden="true"></i>Classifieds</button>
       <button data-tab="connect"><i class="ti ti-users-plus" aria-hidden="true"></i>Connect</button>
       <button data-tab="profile"><i class="ti ti-user" aria-hidden="true"></i>Profile</button>
     </div>
+    <div id="modal" style="display:none"></div>
   </div>
 
+  <script src="collab-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const R = 'https://randomuser.me/api/portraits/';
-    const attendees = [
-      { id: 'maya', name: 'Maya Rodriguez', initials: 'MR', img: R + 'women/79.jpg', cat: 'Design', service: 'Visual identity', blurb: 'Logo systems and brand kits for early-stage products.', wants: 'A bold consumer brand identity', kw: 'branding,packaging', seed: 1, verified: true, status: 'none' },
-      { id: 'nina', name: 'Nina Alvarez', initials: 'NA', img: R + 'women/63.jpg', cat: 'Design', service: 'Illustration', blurb: 'Editorial illustration and playful brand mascots.', wants: 'Packaging illustration for her book', kw: 'illustration,drawing', seed: 2, verified: false, status: 'none' },
-      { id: 'leo', name: 'Leo Martins', initials: 'LM', img: R + 'men/44.jpg', cat: 'Photography', service: 'Event & product', blurb: 'On-site event coverage and clean product shots.', wants: 'Music and nightlife event work', kw: 'concert,stage', seed: 3, verified: true, status: 'none' },
-      { id: 'theo', name: 'Theo Kim', initials: 'TK', img: R + 'men/4.jpg', cat: 'Photography', service: 'Portraits', blurb: 'Natural-light portraits and founder headshots.', wants: 'A creative founder portrait series', kw: 'portrait,face', seed: 4, verified: false, status: 'none' },
-      { id: 'priya', name: 'Priya Shah', initials: 'PS', img: R + 'women/88.jpg', cat: 'Writing', service: 'Naming & copy', blurb: 'Punchy product copy, taglines, and naming sprints.', wants: 'Naming work for a launched startup', kw: 'typography,lettering', seed: 5, verified: false, status: 'none' },
-      { id: 'sana', name: 'Sana Malik', initials: 'SM', img: R + 'women/48.jpg', cat: 'Writing', service: 'Content strategy', blurb: 'Narrative and content systems for launches.', wants: 'A long-form brand narrative piece', kw: 'magazine,reading', seed: 6, verified: true, status: 'none' },
-      { id: 'devin', name: 'Devin Okafor', initials: 'DO', img: R + 'men/59.jpg', cat: 'Development', service: 'Landing pages', blurb: 'Ships fast React marketing sites, animation-heavy.', wants: 'An animation-heavy product site', kw: 'website,dashboard', seed: 7, verified: true, status: 'none' }
-    ];
-    const you = { id: 'you', name: 'Alex Rivera', initials: 'AR', img: R + 'men/40.jpg', cat: 'Photography', service: 'Event & product', blurb: 'Festival and product photography, high-energy.', wants: 'A fashion editorial series', kw: 'concert,festival', seed: 8, verified: true };
-    const ivy = { id: 'ivy', name: 'Ivy Chen', initials: 'IC', img: R + 'women/60.jpg', cat: 'Design', service: 'Motion graphics', kw: 'animation,motion', seed: 9 };
+  (function () {
+    const cfg = window.PROJECT_ONE;
+    const sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
-    const PEOPLE = {}; attendees.forEach(a => PEOPLE[a.id] = a); PEOPLE.you = you; PEOPLE.ivy = ivy;
-
-    const SHOTS = {
+    const CATS = ['All', 'Design', 'Photography', 'Writing', 'Development'];
+    const STEPS = ['Requested', 'Accepted', 'In progress', 'Completed'];
+    const U = (id, w, h) => 'https://images.unsplash.com/photo-' + id + '?w=' + w + '&h=' + h + '&fit=crop&q=80';
+    const DEFAULT_SHOTS = {
+      Design:       ['1561070791-2526d30994b5', '1513364776144-60967b0f800f', '1600880292203-757bb62b4baf'],
+      Photography:  ['1507003211169-0a1dd7228f2d', '1470229722913-7c0e2dbbafd3', '1516450360452-9312f5e86fc7'],
+      Writing:      ['1517842645767-c639042777db', '1455390582262-044cdead277a', '1544716278-ca5e3f4abd8c'],
+      Development:  ['1461749280684-dccba630e2f6', '1498050108023-c5249f4df085', '1555066931-4365d14bab8c']
+    };
+    const SHOTS_BY_HANDLE = {
       maya:  ['1561070791-2526d30994b5', '1626785774573-4b799315345d', '1600880292203-757bb62b4baf'],
       nina:  ['1513364776144-60967b0f800f', '1460661419201-fd4cecdf8a8b', '1596548438137-d51ea5c83ca5'],
       leo:   ['1470229722913-7c0e2dbbafd3', '1516450360452-9312f5e86fc7', '1501281668745-f7f57925c3b4'],
@@ -158,174 +167,350 @@
       priya: ['1517842645767-c639042777db', '1455390582262-044cdead277a', '1544716278-ca5e3f4abd8c'],
       sana:  ['1544716278-ca5e3f4abd8c', '1455390582262-044cdead277a', '1517842645767-c639042777db'],
       devin: ['1461749280684-dccba630e2f6', '1498050108023-c5249f4df085', '1555066931-4365d14bab8c'],
-      ivy:   ['1596548438137-d51ea5c83ca5', '1513364776144-60967b0f800f', '1460661419201-fd4cecdf8a8b'],
-      you:   ['1470229722913-7c0e2dbbafd3', '1516450360452-9312f5e86fc7', '1501281668745-f7f57925c3b4', '1507003211169-0a1dd7228f2d', '1500648767791-00dcc994a43e', '1534528741775-53994a69daeb']
+      ivy:   ['1596548438137-d51ea5c83ca5', '1513364776144-60967b0f800f', '1460661419201-fd4cecdf8a8b']
     };
-    Object.keys(SHOTS).forEach(id => { if (PEOPLE[id]) PEOPLE[id].shots = SHOTS[id]; });
+    function shotsFor(p) {
+      return SHOTS_BY_HANDLE[p.handle] || DEFAULT_SHOTS[p.category] || DEFAULT_SHOTS.Design;
+    }
+    function initials(name) {
+      return name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    }
+    const esc = (s) => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
 
-    const collabs = [
-      { id: 'c1', withId: 'ivy', service: 'Motion graphics', step: 2, messages: [
-        { from: 'them', text: 'Hey! Saw we both hit Design Week. Down to trade — I do a launch teaser, you shoot the stills?' },
-        { from: 'me', text: 'Yes — accepted. 20s teaser for my reel, stills for yours.' }
-      ] }
-    ];
-
-    const feed = [
-      { a: 'maya', b: 'leo', img: '1495474472287-4d71bcdd2085', title: 'Coffee brand identity, shot on launch day', likes: 48, tag: 'Design × Photography' },
-      { a: 'theo', b: 'devin', img: '1500648767791-00dcc994a43e', title: 'Founder portraits for the new product site', likes: 33, tag: 'Photography × Development' },
-      { a: 'nina', b: 'sana', img: '1596548438137-d51ea5c83ca5', title: 'Illustrated brand story for a launch', likes: 61, tag: 'Design × Writing' }
-    ];
-
-    const CATS = ['All', 'Design', 'Photography', 'Writing', 'Development'];
-    const STEPS = ['Requested', 'Accepted', 'In progress', 'Completed'];
-
-    let view = 'feed';
-    let category = 'All';
+    // ---------- state ----------
+    let ev = null;
+    let me = null;
+    let attendees = [];
+    let posts = [];
+    let collabsList = [];
+    let inbox = [];      // incoming pending connections
+    let outbox = [];     // outgoing pending connections
     let activeCollab = null;
+    let activeMessagesSub = null;
+    let view = 'feed';
+    let sheetView = null;
+    let category = 'All';
 
-    const screen = document.getElementById('screen');
-    const toast = document.getElementById('toast');
-    const collabBtn = document.getElementById('collab-btn');
-    const collabBadge = document.getElementById('collab-badge');
-    const navBtns = Array.from(document.querySelectorAll('.nav button'));
+    const $screen = document.getElementById('screen');
+    const $toast = document.getElementById('toast');
+    const $collabBtn = document.getElementById('collab-btn');
+    const $collabBadge = document.getElementById('collab-badge');
+    const $eventName = document.getElementById('event-name');
+    const $eventSub = document.getElementById('event-sub');
+    const $modal = document.getElementById('modal');
 
-    const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-    function showToast(msg) { toast.textContent = msg; toast.style.opacity = '1'; setTimeout(() => { toast.style.opacity = '0'; }, 1600); }
-
-    function avatar(p, size) {
-      const s = size || 42;
-      const fb = 'https://picsum.photos/seed/' + p.id + '/80';
-      return '<div class="av" style="width:' + s + 'px;height:' + s + 'px;font-size:' + Math.round(s / 3.2) + 'px"><span>' + p.initials + '</span><img src="' + p.img + '" alt="" onerror="this.onerror=null;this.src=\'' + fb + '\'"></div>';
+    function toast(msg, kind) {
+      $toast.textContent = msg;
+      $toast.style.color = kind === 'err' ? '#a32d2d' : 'var(--text-success)';
+      $toast.style.opacity = '1';
+      setTimeout(() => { $toast.style.opacity = '0'; }, 1800);
     }
 
-    const U = (id, w, h) => 'https://images.unsplash.com/photo-' + id + '?w=' + w + '&h=' + h + '&fit=crop&q=80';
+    // ---------- data ----------
+    async function loadEvent() {
+      const { data, error } = await sb.from('events').select('*').eq('slug', cfg.EVENT_SLUG).single();
+      if (error) throw error;
+      ev = data;
+      $eventName.textContent = ev.name;
+      $eventSub.textContent = ev.subtitle || '';
+    }
+
+    async function loadMe() {
+      const handle = localStorage.getItem('p1_handle');
+      if (!handle) { me = null; return; }
+      const { data } = await sb.from('profiles').select('*').eq('event_id', ev.id).eq('handle', handle).maybeSingle();
+      me = data || null;
+      if (!me) localStorage.removeItem('p1_handle');
+    }
+
+    async function loadAttendees() {
+      const { data } = await sb.from('profiles').select('*').eq('event_id', ev.id).order('name');
+      attendees = (data || []).filter(a => !me || a.id !== me.id);
+    }
+
+    async function loadPosts() {
+      const { data } = await sb.from('posts')
+        .select('*, a:a_profile(id,name,handle,avatar_url), b:b_profile(id,name,handle,avatar_url)')
+        .eq('event_id', ev.id).order('created_at', { ascending: false });
+      posts = data || [];
+    }
+
+    async function loadCollabs() {
+      if (!me) { collabsList = []; return; }
+      const { data } = await sb.from('collabs')
+        .select('*, a:a_profile(id,name,handle,avatar_url,category,service), b:b_profile(id,name,handle,avatar_url,category,service)')
+        .eq('event_id', ev.id)
+        .or('a_profile.eq.' + me.id + ',b_profile.eq.' + me.id)
+        .order('updated_at', { ascending: false });
+      collabsList = data || [];
+    }
+
+    async function loadConnections() {
+      if (!me) { inbox = []; outbox = []; return; }
+      const { data: inD } = await sb.from('connections')
+        .select('*, from:from_profile(id,name,handle,avatar_url,category,service)')
+        .eq('to_profile', me.id).eq('status', 'pending').order('created_at', { ascending: false });
+      inbox = inD || [];
+      const { data: outD } = await sb.from('connections')
+        .select('to_profile,status')
+        .eq('from_profile', me.id).eq('status', 'pending');
+      outbox = outD || [];
+    }
+
+    async function reloadAll() {
+      await Promise.all([loadAttendees(), loadPosts(), loadCollabs(), loadConnections()]);
+    }
+
+    // ---------- actions ----------
+    async function createProfile(form) {
+      // Reserve handles collision: catch unique violation.
+      const payload = {
+        event_id: ev.id,
+        handle: form.handle.trim().toLowerCase(),
+        name: form.name.trim(),
+        category: form.category,
+        service: form.service.trim(),
+        blurb: form.blurb.trim() || null,
+        wants: form.wants.trim() || null,
+        avatar_url: form.avatar_url || null
+      };
+      const { data, error } = await sb.from('profiles').insert(payload).select().single();
+      if (error) throw error;
+      localStorage.setItem('p1_handle', payload.handle);
+      me = data;
+    }
+
+    async function sendConnect(toId, proposal) {
+      const { error } = await sb.from('connections').insert({
+        event_id: ev.id, from_profile: me.id, to_profile: toId,
+        proposal: proposal || null, status: 'pending'
+      });
+      if (error) { toast(error.message.slice(0, 40), 'err'); return; }
+      toast('Request sent');
+      await loadConnections();
+    }
+
+    async function acceptConnect(reqId, fromId, service) {
+      await sb.from('connections').update({ status: 'accepted' }).eq('id', reqId);
+      const { data: collab } = await sb.from('collabs').insert({
+        event_id: ev.id, a_profile: fromId, b_profile: me.id, service: service || null, step: 2
+      }).select().single();
+      toast('Accepted — collab open');
+      await Promise.all([loadConnections(), loadCollabs()]);
+      if (collab) { activeCollab = collab.id; view = 'collabDetail'; }
+      render();
+    }
+
+    async function declineConnect(reqId) {
+      await sb.from('connections').update({ status: 'declined' }).eq('id', reqId);
+      await loadConnections(); render();
+    }
+
+    async function sendMessage(collabId, body) {
+      await sb.from('messages').insert({ collab_id: collabId, sender_profile: me.id, body });
+    }
+
+    async function advanceStep(collab) {
+      const next = Math.min(4, collab.step + 1);
+      await sb.from('collabs').update({ step: next, updated_at: new Date().toISOString() }).eq('id', collab.id);
+    }
+
+    async function markDone(collab) {
+      const field = collab.a.id === me.id ? 'a_done' : 'b_done';
+      const patch = { [field]: true, updated_at: new Date().toISOString() };
+      const otherDone = collab.a.id === me.id ? collab.b_done : collab.a_done;
+      if (otherDone) {
+        // Both done → publish to Feed.
+        patch.step = 4;
+        await sb.from('collabs').update(patch).eq('id', collab.id);
+        const heroShot = shotsFor(me)[0];
+        await sb.from('posts').insert({
+          event_id: ev.id, collab_id: collab.id,
+          a_profile: collab.a.id, b_profile: collab.b.id,
+          title: (collab.service || 'Collab') + ' — completed at ' + ev.name,
+          image_url: U(heroShot, 600, 600),
+          tag: collab.a.category + ' × ' + collab.b.category,
+          likes: 0
+        });
+        toast('Collab complete — posted to Feed');
+      } else {
+        await sb.from('collabs').update(patch).eq('id', collab.id);
+        toast('Marked done — waiting on other side');
+      }
+    }
+
+    // ---------- rendering ----------
+    function avatar(p, size) {
+      const s = size || 42;
+      const url = p.avatar_url;
+      const init = initials(p.name || '?');
+      const inner = url
+        ? '<span>' + init + '</span><img src="' + esc(url) + '" alt="" onerror="this.remove()">'
+        : '<span>' + init + '</span>';
+      return '<div class="av" style="width:' + s + 'px;height:' + s + 'px;font-size:' + Math.round(s / 3.2) + 'px">' + inner + '</div>';
+    }
     function tile(id) { return '<div class="thumb"><img src="' + U(id, 240, 300) + '" alt="" loading="lazy"></div>'; }
     function workGrid(p, n) {
-      const s = p.shots || [];
+      const s = shotsFor(p);
       let out = '<div class="grid3" style="margin-top:11px">';
       for (let i = 0; i < n; i++) out += tile(s[i % s.length]);
       return out + '</div>';
     }
 
+    function updateBadge() {
+      const n = collabsList.length + inbox.length;
+      $collabBadge.textContent = n;
+      $collabBadge.style.display = n ? 'flex' : 'none';
+      const on = view === 'collabs' || view === 'collabDetail';
+      $collabBtn.style.background = on ? 'var(--bg-accent)' : 'transparent';
+      $collabBtn.style.color = on ? 'var(--text-accent)' : 'var(--text-primary)';
+      document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === view));
+    }
+
     function chipsBar() {
       return '<div class="chips">' + CATS.map(c => {
-        const n = c === 'All' ? attendees.length : attendees.filter(a => a.cat === c).length;
+        const n = c === 'All' ? attendees.length : attendees.filter(a => a.category === c).length;
         return '<button class="chip ' + (c === category ? 'active' : '') + '" data-cat="' + c + '">' + c + ' <span style="opacity:.6">' + n + '</span></button>';
       }).join('') + '</div>';
     }
-    function bindChips() {
-      screen.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { category = b.dataset.cat; render(); }));
-    }
-
-    function connect(id) {
-      const a = attendees.find(x => x.id === id);
-      if (a && a.status === 'none') { a.status = 'requested'; showToast('Request sent'); }
-      render();
-    }
-    function bindConnect() {
-      screen.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', () => connect(b.dataset.connect)));
-    }
-
-    function updateBadge() {
-      collabBadge.textContent = collabs.length;
-      collabBadge.style.display = collabs.length ? 'flex' : 'none';
-      const on = view === 'collabs' || view === 'collabDetail';
-      collabBtn.style.background = on ? 'var(--bg-accent)' : 'transparent';
-      collabBtn.style.color = on ? 'var(--text-accent)' : 'var(--text-primary)';
-      navBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === view));
-    }
 
     function feedView() {
-      screen.innerHTML = feed.map(post => {
-        const A = PEOPLE[post.a], B = PEOPLE[post.b];
+      if (!posts.length) {
+        $screen.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-secondary)"><i class="ti ti-photo-off" style="font-size:36px" aria-hidden="true"></i><p style="font-size:13px;margin:14px 0 0">No collab work yet. Complete a collab and it lands here.</p></div>';
+        return;
+      }
+      $screen.innerHTML = posts.map(p => {
+        const A = p.a, B = p.b;
+        if (!A || !B) return '';
         return '<div class="card" style="padding:0;overflow:hidden">'
           + '<div style="display:flex;align-items:center;gap:10px;padding:11px 13px">'
           + '<div style="display:flex">' + avatar(A, 34) + '<div style="margin-left:-10px">' + avatar(B, 34) + '</div></div>'
           + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(A.name.split(' ')[0]) + ' × ' + esc(B.name.split(' ')[0]) + '</p>'
-          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">' + esc(post.tag) + ' · Design Week SF</p></div></div>'
-          + '<div class="hero" style="border-radius:0;aspect-ratio:1/1"><img src="' + U(post.img, 600, 600) + '" alt=""></div>'
+          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">' + esc(p.tag || '') + ' · ' + esc(ev.name) + '</p></div></div>'
+          + '<div class="hero"><img src="' + esc(p.image_url) + '" alt=""></div>'
           + '<div style="padding:11px 13px">'
           + '<div style="display:flex;gap:15px;align-items:center;margin-bottom:8px;color:var(--text-primary)">'
-          + '<span style="font-size:13px"><i class="ti ti-heart" style="font-size:17px;vertical-align:-3px" aria-hidden="true"></i> ' + post.likes + '</span>'
-          + '<span style="font-size:13px"><i class="ti ti-message-circle" style="font-size:17px;vertical-align:-3px" aria-hidden="true"></i> ' + Math.round(post.likes / 6) + '</span>'
+          + '<span style="font-size:13px"><i class="ti ti-heart" style="font-size:17px;vertical-align:-3px" aria-hidden="true"></i> ' + (p.likes || 0) + '</span>'
+          + '<span style="font-size:13px"><i class="ti ti-message-circle" style="font-size:17px;vertical-align:-3px" aria-hidden="true"></i></span>'
           + '<span style="margin-left:auto;font-size:11px;color:var(--text-accent);background:var(--bg-accent);padding:3px 9px;border-radius:999px">Collab</span></div>'
-          + '<p style="margin:0;font-size:13px;line-height:1.5"><span style="font-weight:600">' + esc(A.name.split(' ')[0]) + '</span> ' + esc(post.title) + '</p>'
+          + '<p style="margin:0;font-size:13px;line-height:1.5"><span style="font-weight:600">' + esc(A.name.split(' ')[0]) + '</span> ' + esc(p.title || '') + '</p>'
           + '</div></div>';
       }).join('');
     }
 
     function classifiedsView() {
-      const list = category === 'All' ? attendees : attendees.filter(a => a.cat === category);
+      const list = (category === 'All' ? attendees : attendees.filter(a => a.category === category)).filter(a => a.wants);
+      const sentIds = new Set(outbox.map(o => o.to_profile));
       const trade = '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:11px;border:0.5px solid var(--border);border-radius:11px">'
         + '<i class="ti ti-arrows-exchange-2" style="font-size:17px;color:var(--text-accent)" aria-hidden="true"></i>'
         + '<span style="font-size:12px;color:var(--text-secondary);line-height:1.4">Trade for portfolio — post what you want to build, find someone to build it with.</span></div>';
-      screen.innerHTML = chipsBar() + trade + list.map(a => {
-        const btn = a.status === 'requested'
+      const empty = list.length ? '' : '<p style="font-size:13px;color:var(--text-secondary);text-align:center;padding:24px 20px">No classifieds in this category yet.</p>';
+      $screen.innerHTML = chipsBar() + trade + list.map(a => {
+        const sent = sentIds.has(a.id);
+        const btn = sent
           ? '<button class="btn-mini" disabled style="opacity:.5">Requested</button>'
-          : '<button class="btn-mini btn-primary" data-connect="' + a.id + '">Respond</button>';
+          : '<button class="btn-mini btn-primary" data-respond="' + a.id + '">Respond</button>';
         return '<div class="card">'
           + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:9px">' + avatar(a, 38)
           + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(a.name) + '</p>'
-          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">Offers ' + esc(a.cat.toLowerCase()) + ' · ' + esc(a.service.toLowerCase()) + '</p></div></div>'
+          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">Offers ' + esc(a.category.toLowerCase()) + ' · ' + esc(a.service.toLowerCase()) + '</p></div></div>'
           + '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px">'
           + '<i class="ti ti-target-arrow" style="font-size:16px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
           + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Wants to build</p>'
           + '<p style="margin:1px 0 0;font-size:13.5px;font-weight:500">' + esc(a.wants) + '</p></div>'
           + btn + '</div></div>';
-      }).join('');
-      bindChips(); bindConnect();
+      }).join('') + empty;
+      $screen.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { category = b.dataset.cat; render(); }));
+      $screen.querySelectorAll('[data-respond]').forEach(b => b.addEventListener('click', () => openProposeSheet(b.dataset.respond, 'Respond to their want')));
     }
 
     function connectView() {
-      const list = category === 'All' ? attendees : attendees.filter(a => a.cat === category);
-      screen.innerHTML = chipsBar() + list.map(a => {
-        const btn = a.status === 'requested'
+      const list = category === 'All' ? attendees : attendees.filter(a => a.category === category);
+      const sentIds = new Set(outbox.map(o => o.to_profile));
+      $screen.innerHTML = chipsBar() + list.map(a => {
+        const sent = sentIds.has(a.id);
+        const btn = sent
           ? '<button class="add-btn added" disabled aria-label="Requested"><i class="ti ti-check" style="font-size:17px" aria-hidden="true"></i></button>'
           : '<button class="add-btn" data-connect="' + a.id + '" aria-label="Connect"><i class="ti ti-plus" style="font-size:18px" aria-hidden="true"></i></button>';
         const check = a.verified ? ' <i class="ti ti-rosette-discount-check" style="font-size:13px;color:var(--text-accent);vertical-align:-1px" aria-hidden="true"></i>' : '';
         return '<div class="card">'
           + '<div style="display:flex;gap:11px;align-items:center">' + avatar(a)
           + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:17px">' + esc(a.name) + check + '</p>'
-          + '<p style="margin:2px 0 0;font-size:12px;color:var(--text-secondary)">' + esc(a.cat) + ' · ' + esc(a.service) + '</p></div>' + btn + '</div>'
-          + '<p style="margin:10px 0 0;font-size:13px;line-height:1.5">' + esc(a.blurb) + '</p>'
+          + '<p style="margin:2px 0 0;font-size:12px;color:var(--text-secondary)">' + esc(a.category) + ' · ' + esc(a.service) + '</p></div>' + btn + '</div>'
+          + (a.blurb ? '<p style="margin:10px 0 0;font-size:13px;line-height:1.5">' + esc(a.blurb) + '</p>' : '')
           + workGrid(a, 3) + '</div>';
       }).join('');
-      bindChips(); bindConnect();
+      $screen.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { category = b.dataset.cat; render(); }));
+      $screen.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', () => openProposeSheet(b.dataset.connect, 'Propose your trade')));
     }
 
     function profileView() {
-      const p = you;
-      screen.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px">'
-        + avatar(p, 76)
-        + '<p class="disp" style="margin:10px 0 0;font-size:21px">' + esc(p.name) + ' <i class="ti ti-rosette-discount-check" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i></p>'
-        + '<p style="margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)">' + esc(p.cat) + ' · ' + esc(p.service) + '</p>'
-        + '<p style="margin:9px 0 0;font-size:13px;color:var(--text-primary);max-width:280px;line-height:1.5">' + esc(p.blurb) + '</p></div>'
+      if (!me) return;
+      const shots = shotsFor(me);
+      $screen.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px">'
+        + avatar(me, 76)
+        + '<p class="disp" style="margin:10px 0 0;font-size:21px">' + esc(me.name) + (me.verified ? ' <i class="ti ti-rosette-discount-check" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i>' : '') + '</p>'
+        + '<p style="margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)">' + esc(me.category) + ' · ' + esc(me.service) + '</p>'
+        + (me.blurb ? '<p style="margin:9px 0 0;font-size:13px;color:var(--text-primary);max-width:280px;line-height:1.5">' + esc(me.blurb) + '</p>' : '') + '</div>'
         + '<div style="display:flex;gap:8px;margin:14px 0">'
-        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">4</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Collabs</p></div>'
-        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">12</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Feed posts</p></div>'
-        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">3</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Events</p></div></div>'
-        + '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px;margin-bottom:14px">'
-        + '<i class="ti ti-target-arrow" style="font-size:16px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
-        + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Your classified · wants to build</p>'
-        + '<p style="margin:1px 0 0;font-size:13.5px;font-weight:500">' + esc(p.wants) + '</p></div>'
-        + '<button class="btn-mini" style="padding:5px 10px">Edit</button></div>'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + collabsList.length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Collabs</p></div>'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + posts.filter(p => p.a && (p.a.id === me.id || (p.b && p.b.id === me.id))).length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Feed posts</p></div>'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">1</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Events</p></div></div>'
+        + (me.wants
+            ? '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px;margin-bottom:14px">'
+              + '<i class="ti ti-target-arrow" style="font-size:16px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
+              + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Your classified · wants to build</p>'
+              + '<p style="margin:1px 0 0;font-size:13.5px;font-weight:500">' + esc(me.wants) + '</p></div></div>'
+            : '<div style="padding:10px 12px;background:var(--surface-1);border-radius:10px;margin-bottom:14px;text-align:center;font-size:12px;color:var(--text-secondary)">Add a classified to appear in the Classifieds tab.</div>')
         + '<p style="margin:0 0 8px;font-size:13px;font-weight:600" class="disp">Portfolio</p>'
-        + '<div class="grid3">' + (p.shots || []).map(id => tile(id)).join('') + '</div>';
+        + '<div class="grid3">' + shots.map(id => tile(id)).join('') + '</div>'
+        + '<button id="sign-out" class="btn-mini" style="margin-top:16px;width:100%;padding:10px;color:var(--text-secondary)">Sign out</button>';
+      const so = document.getElementById('sign-out');
+      if (so) so.addEventListener('click', () => {
+        localStorage.removeItem('p1_handle');
+        location.reload();
+      });
     }
 
     function collabsView() {
-      screen.innerHTML = '<p class="disp" style="margin:2px 0 12px;font-size:20px;font-weight:700">Your collabs</p>'
-        + collabs.map(c => {
-          const w = PEOPLE[c.withId]; const done = c.step >= 4;
-          const col = done ? 'var(--text-success)' : 'var(--text-accent)';
-          const bg = done ? 'var(--bg-success)' : 'var(--bg-accent)';
-          return '<div class="card" data-collab="' + c.id + '" style="cursor:pointer;display:flex;gap:11px;align-items:center">' + avatar(w)
-            + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:16px">' + esc(w.name) + '</p>'
-            + '<p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(c.service) + '</p></div>'
-            + '<span style="font-size:11px;padding:3px 10px;border-radius:999px;background:' + bg + ';color:' + col + '">' + STEPS[c.step - 1] + '</span>'
-            + '<i class="ti ti-chevron-right" style="font-size:18px;color:var(--text-muted)" aria-hidden="true"></i></div>';
-        }).join('');
-      screen.querySelectorAll('[data-collab]').forEach(el => el.addEventListener('click', () => { activeCollab = el.dataset.collab; view = 'collabDetail'; render(); }));
+      const requests = inbox.length
+        ? '<p class="disp" style="margin:2px 0 8px;font-size:16px;font-weight:700">Requests</p>'
+          + inbox.map(r => {
+            const F = r.from;
+            return '<div class="card">'
+              + '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">' + avatar(F, 38)
+              + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(F.name) + '</p>'
+              + '<p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(F.category) + ' · ' + esc(F.service) + '</p></div></div>'
+              + (r.proposal ? '<div style="background:var(--surface-1);border-radius:10px;padding:9px 11px;font-size:13px;line-height:1.5;margin-bottom:10px"><span style="color:var(--text-secondary);font-size:11px;display:block;margin-bottom:2px">Their proposal</span>' + esc(r.proposal) + '</div>' : '')
+              + '<div style="display:flex;gap:6px">'
+              + '<button class="btn-mini" data-decline="' + r.id + '" style="flex:1">Decline</button>'
+              + '<button class="btn-mini btn-primary" data-accept="' + r.id + '" data-from="' + F.id + '" data-service="' + esc(F.service) + '" style="flex:2">Accept &amp; open collab</button>'
+              + '</div></div>';
+          }).join('')
+        : '';
+      const active = collabsList.length
+        ? '<p class="disp" style="margin:12px 0 8px;font-size:16px;font-weight:700">Your collabs</p>'
+          + collabsList.map(c => {
+            const other = c.a.id === me.id ? c.b : c.a;
+            const done = c.step >= 4;
+            const col = done ? 'var(--text-success)' : 'var(--text-accent)';
+            const bg = done ? 'var(--bg-success)' : 'var(--bg-accent)';
+            return '<div class="card" data-collab="' + c.id + '" style="cursor:pointer;display:flex;gap:11px;align-items:center">' + avatar(other)
+              + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:16px">' + esc(other.name) + '</p>'
+              + '<p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(c.service || 'Collab') + '</p></div>'
+              + '<span style="font-size:11px;padding:3px 10px;border-radius:999px;background:' + bg + ';color:' + col + '">' + STEPS[c.step - 1] + '</span>'
+              + '<i class="ti ti-chevron-right" style="font-size:18px;color:var(--text-muted)" aria-hidden="true"></i></div>';
+          }).join('')
+        : '';
+      const empty = !inbox.length && !collabsList.length
+        ? '<div style="text-align:center;padding:60px 20px;color:var(--text-secondary)"><i class="ti ti-users" style="font-size:32px" aria-hidden="true"></i><p style="font-size:13px;margin:12px 0 0">No collabs or requests yet.</p></div>'
+        : '';
+      $screen.innerHTML = requests + active + empty;
+      $screen.querySelectorAll('[data-collab]').forEach(el => el.addEventListener('click', () => { activeCollab = el.dataset.collab; view = 'collabDetail'; render(); }));
+      $screen.querySelectorAll('[data-decline]').forEach(el => el.addEventListener('click', async () => { await declineConnect(el.dataset.decline); }));
+      $screen.querySelectorAll('[data-accept]').forEach(el => el.addEventListener('click', async () => {
+        await acceptConnect(el.dataset.accept, el.dataset.from, el.dataset.service);
+      }));
     }
 
     function tracker(step) {
@@ -343,37 +528,142 @@
       return '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:4px 2px 12px">' + cells + '</div>';
     }
 
-    function detailView() {
-      const c = collabs.find(x => x.id === activeCollab); const w = PEOPLE[c.withId];
-      const bubbles = c.messages.map(m => {
-        const mine = m.from === 'me';
+    async function detailView() {
+      const c = collabsList.find(x => x.id === activeCollab);
+      if (!c) { view = 'collabs'; render(); return; }
+      const other = c.a.id === me.id ? c.b : c.a;
+      const { data: msgs } = await sb.from('messages').select('*').eq('collab_id', c.id).order('created_at');
+      const bubbles = (msgs || []).map(m => {
+        const mine = m.sender_profile === me.id;
         return '<div style="display:flex;justify-content:' + (mine ? 'flex-end' : 'flex-start') + ';margin-bottom:6px">'
           + '<div style="max-width:78%;font-size:13px;line-height:1.45;padding:8px 11px;border-radius:13px;'
-          + (mine ? 'background:var(--text-accent);color:#fff' : 'background:var(--surface-1);color:var(--text-primary);border:0.5px solid var(--border)') + '">' + esc(m.text) + '</div></div>';
+          + (mine ? 'background:var(--text-accent);color:#fff' : 'background:var(--surface-1);color:var(--text-primary);border:0.5px solid var(--border)') + '">' + esc(m.body) + '</div></div>';
       }).join('');
-      const adv = c.step < 4
-        ? '<button class="btn-mini btn-primary" id="advance" style="width:100%;padding:10px">Advance to ' + STEPS[c.step] + ' <i class="ti ti-arrow-right" style="font-size:13px;vertical-align:-2px" aria-hidden="true"></i></button>'
-        : '<div style="text-align:center;font-size:12px;color:var(--text-success);padding:9px"><i class="ti ti-confetti" style="font-size:14px;vertical-align:-2px" aria-hidden="true"></i> Collab complete — posts to both portfolios</div>';
-      screen.innerHTML =
+      const myDone = c.a.id === me.id ? c.a_done : c.b_done;
+      const otherDone = c.a.id === me.id ? c.b_done : c.a_done;
+      let action;
+      if (c.step < 3) {
+        action = '<button class="btn-mini btn-primary" id="advance" style="width:100%;padding:10px">Advance to ' + STEPS[c.step] + '</button>';
+      } else if (c.step === 3) {
+        if (myDone && otherDone) action = '<div style="text-align:center;font-size:12px;color:var(--text-success);padding:9px"><i class="ti ti-confetti" style="font-size:14px;vertical-align:-2px" aria-hidden="true"></i> Collab complete — posted to Feed</div>';
+        else if (myDone) action = '<div style="text-align:center;font-size:12px;color:var(--text-secondary);padding:9px">Marked done. Waiting on ' + esc(other.name.split(' ')[0]) + '.</div>';
+        else action = '<button class="btn-mini btn-primary" id="markdone" style="width:100%;padding:10px">Mark my side done' + (otherDone ? ' → publish' : '') + '</button>';
+      } else {
+        action = '<div style="text-align:center;font-size:12px;color:var(--text-success);padding:9px"><i class="ti ti-confetti" style="font-size:14px;vertical-align:-2px" aria-hidden="true"></i> Collab complete — posted to Feed</div>';
+      }
+      $screen.innerHTML =
         '<button id="back" class="btn-mini" style="border:none;padding:2px 0 10px;color:var(--text-secondary)"><i class="ti ti-chevron-left" style="font-size:15px;vertical-align:-2px" aria-hidden="true"></i> Collabs</button>'
-        + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:11px">' + avatar(w)
-        + '<div><p class="disp" style="margin:0;font-size:19px">' + esc(w.name) + '</p><p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(c.service) + '</p></div></div>'
+        + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:11px">' + avatar(other)
+        + '<div><p class="disp" style="margin:0;font-size:19px">' + esc(other.name) + '</p><p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(c.service || 'Collab') + '</p></div></div>'
         + '<div class="card" style="padding:11px 8px">' + tracker(c.step) + '</div>'
-        + '<div style="margin:4px 0 11px">' + adv + '</div>'
+        + '<div style="margin:4px 0 11px">' + action + '</div>'
         + '<p style="font-size:12px;color:var(--text-secondary);margin:0 0 8px">Messages</p>'
-        + '<div style="background:var(--surface-1);border-radius:13px;padding:10px;margin-bottom:8px">' + bubbles + '</div>'
-        + '<div style="display:flex;gap:6px"><input id="msg" placeholder="Message ' + esc(w.name.split(' ')[0]) + '" style="flex:1" /><button id="send" class="btn-mini btn-primary"><i class="ti ti-send" style="font-size:15px" aria-hidden="true"></i></button></div>';
-      document.getElementById('back').addEventListener('click', () => { view = 'collabs'; render(); });
-      const a = document.getElementById('advance');
-      if (a) a.addEventListener('click', () => { if (c.step < 4) c.step++; render(); });
+        + '<div id="bubbles" style="background:var(--surface-1);border-radius:13px;padding:10px;margin-bottom:8px;min-height:60px">' + bubbles + '</div>'
+        + '<div style="display:flex;gap:6px"><input id="msg" placeholder="Message ' + esc(other.name.split(' ')[0]) + '" style="flex:1" /><button id="send" class="btn-mini btn-primary"><i class="ti ti-send" style="font-size:15px" aria-hidden="true"></i></button></div>';
+      document.getElementById('back').addEventListener('click', () => { closeMessagesSub(); view = 'collabs'; activeCollab = null; render(); });
+      const adv = document.getElementById('advance');
+      if (adv) adv.addEventListener('click', async () => { await advanceStep(c); await loadCollabs(); render(); });
+      const md = document.getElementById('markdone');
+      if (md) md.addEventListener('click', async () => { await markDone(c); await Promise.all([loadCollabs(), loadPosts()]); render(); });
       const input = document.getElementById('msg');
-      function doSend() { const v = input.value.trim(); if (!v) return; c.messages.push({ from: 'me', text: v }); render(); }
-      document.getElementById('send').addEventListener('click', doSend);
+      const send = document.getElementById('send');
+      const doSend = async () => { const v = input.value.trim(); if (!v) return; input.value = ''; await sendMessage(c.id, v); };
+      send.addEventListener('click', doSend);
       input.addEventListener('keydown', e => { if (e.key === 'Enter') doSend(); });
+      openMessagesSub(c.id);
     }
 
+    function openMessagesSub(collabId) {
+      closeMessagesSub();
+      activeMessagesSub = sb.channel('messages-' + collabId)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'collab_id=eq.' + collabId }, payload => {
+          const m = payload.new;
+          const mine = m.sender_profile === me.id;
+          const bub = document.getElementById('bubbles');
+          if (!bub) return;
+          bub.insertAdjacentHTML('beforeend',
+            '<div style="display:flex;justify-content:' + (mine ? 'flex-end' : 'flex-start') + ';margin-bottom:6px">'
+            + '<div style="max-width:78%;font-size:13px;line-height:1.45;padding:8px 11px;border-radius:13px;'
+            + (mine ? 'background:var(--text-accent);color:#fff' : 'background:var(--surface-1);color:var(--text-primary);border:0.5px solid var(--border)') + '">' + esc(m.body) + '</div></div>');
+          bub.scrollTop = bub.scrollHeight;
+        }).subscribe();
+    }
+    function closeMessagesSub() { if (activeMessagesSub) { sb.removeChannel(activeMessagesSub); activeMessagesSub = null; } }
+
+    // ---------- sheets (onboarding + propose) ----------
+    function openSheet(html, opts) {
+      opts = opts || {};
+      $modal.style.display = 'block';
+      $modal.innerHTML = '<div class="sheet' + (opts.center ? ' center' : '') + '"><div class="sheet-body' + (opts.center ? ' centered' : '') + '">' + html + '</div></div>';
+      const sheet = $modal.querySelector('.sheet');
+      if (opts.dismissable !== false) sheet.addEventListener('click', (e) => { if (e.target === sheet) closeSheet(); });
+    }
+    function closeSheet() { $modal.style.display = 'none'; $modal.innerHTML = ''; }
+
+    function openOnboardingSheet() {
+      openSheet(
+        '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Join ' + esc(ev.name) + '</p>'
+        + '<p style="margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)">Trade-for-portfolio — bring what you offer, name what you want to build.</p>'
+        + '<div class="field"><label>Full name</label><input id="f-name" placeholder="Your name"></div>'
+        + '<div class="field"><label>Handle</label><input id="f-handle" placeholder="lowercase, no spaces"></div>'
+        + '<div class="field"><label>Category</label><select id="f-category">'
+          + CATS.filter(c => c !== 'All').map(c => '<option>' + c + '</option>').join('')
+        + '</select></div>'
+        + '<div class="field"><label>What you offer (one line)</label><input id="f-service" placeholder="e.g. Portrait photography"></div>'
+        + '<div class="field"><label>Short bio</label><textarea id="f-blurb" rows="2" placeholder="One-line pitch, optional"></textarea></div>'
+        + '<div class="field"><label>What you want to build (your classified)</label><textarea id="f-wants" rows="2" placeholder="A portfolio piece you would love to create"></textarea></div>'
+        + '<button id="f-submit" class="btn-mini btn-primary" style="width:100%;padding:11px;margin-top:6px">Join event</button>',
+        { center: true, dismissable: false }
+      );
+      document.getElementById('f-submit').addEventListener('click', async () => {
+        const form = {
+          name: document.getElementById('f-name').value,
+          handle: document.getElementById('f-handle').value,
+          category: document.getElementById('f-category').value,
+          service: document.getElementById('f-service').value,
+          blurb: document.getElementById('f-blurb').value,
+          wants: document.getElementById('f-wants').value
+        };
+        if (!form.name.trim() || !form.handle.trim() || !form.service.trim()) { toast('Name, handle, service required', 'err'); return; }
+        if (!/^[a-z0-9_]+$/i.test(form.handle)) { toast('Handle: letters/numbers/_ only', 'err'); return; }
+        try {
+          await createProfile(form);
+          closeSheet();
+          await reloadAll();
+          view = 'feed';
+          render();
+        } catch (e) {
+          toast((e.message || 'Error').slice(0, 40), 'err');
+        }
+      });
+    }
+
+    function openProposeSheet(toId, title) {
+      const target = attendees.find(a => a.id === toId);
+      if (!target) return;
+      openSheet(
+        '<p class="disp" style="margin:0 0 4px;font-size:18px;font-weight:700">' + esc(title) + '</p>'
+        + '<div style="display:flex;gap:10px;align-items:center;margin:6px 0 12px">' + avatar(target, 36)
+        + '<div><p class="disp" style="margin:0;font-size:14px">' + esc(target.name) + '</p>'
+        + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">' + esc(target.category) + ' · ' + esc(target.service) + '</p></div></div>'
+        + (target.wants ? '<div style="background:var(--surface-1);border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.5;margin-bottom:12px"><span style="color:var(--text-secondary);font-size:11px;display:block">Their want</span>' + esc(target.wants) + '</div>' : '')
+        + '<div class="field"><label>The trade you propose</label><textarea id="prop" rows="4" placeholder="What you\'ll make for them + what you want back."></textarea></div>'
+        + '<div style="display:flex;gap:6px"><button class="btn-mini" id="prop-cancel" style="flex:1">Cancel</button><button class="btn-mini btn-primary" id="prop-send" style="flex:2">Send request</button></div>'
+      );
+      document.getElementById('prop-cancel').addEventListener('click', closeSheet);
+      document.getElementById('prop-send').addEventListener('click', async () => {
+        const proposal = document.getElementById('prop').value.trim();
+        if (proposal.length < 4) { toast('Add a short proposal', 'err'); return; }
+        closeSheet();
+        await sendConnect(toId, proposal);
+        render();
+      });
+    }
+
+    // ---------- master render ----------
     function render() {
       updateBadge();
+      if (!me) { openOnboardingSheet(); return; }
       if (view === 'feed') return feedView();
       if (view === 'classifieds') return classifiedsView();
       if (view === 'connect') return connectView();
@@ -382,9 +672,40 @@
       if (view === 'collabDetail') return detailView();
     }
 
-    navBtns.forEach(b => b.addEventListener('click', () => { view = b.dataset.tab; activeCollab = null; screen.scrollTop = 0; render(); }));
-    collabBtn.addEventListener('click', () => { view = 'collabs'; activeCollab = null; screen.scrollTop = 0; render(); });
-    render();
+    // ---------- global subscriptions (keep collabs + inbox fresh) ----------
+    function openGlobalSubs() {
+      sb.channel('conn-' + (me ? me.id : 'anon'))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'connections' }, async () => {
+          await loadConnections(); if (view === 'collabs') render(); else updateBadge();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'collabs' }, async () => {
+          await loadCollabs(); if (view === 'collabs' || view === 'collabDetail') render(); else updateBadge();
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, async () => {
+          await loadPosts(); if (view === 'feed') render();
+        })
+        .subscribe();
+    }
+
+    // ---------- boot ----------
+    document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click', () => {
+      closeMessagesSub();
+      view = b.dataset.tab; activeCollab = null; $screen.scrollTop = 0; render();
+    }));
+    $collabBtn.addEventListener('click', () => { closeMessagesSub(); view = 'collabs'; activeCollab = null; $screen.scrollTop = 0; render(); });
+
+    (async () => {
+      try {
+        await loadEvent();
+        await loadMe();
+        await reloadAll();
+        openGlobalSubs();
+        render();
+      } catch (e) {
+        $screen.innerHTML = '<div style="padding:20px;color:#a32d2d;font-size:13px">Could not load event: ' + esc(e.message || String(e)) + '</div>';
+      }
+    })();
+  })();
   </script>
 </body>
 </html>
