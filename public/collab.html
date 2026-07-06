@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project One · Connect &amp; Collab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --surface-2: #ffffff;
+      --surface-1: #f5f4f0;
+      --surface-0: #efede7;
+      --border: rgba(20, 18, 12, 0.10);
+      --border-strong: rgba(20, 18, 12, 0.20);
+      --text-primary: #1b1a17;
+      --text-secondary: #6c6a63;
+      --text-muted: #9c9a92;
+      --text-accent: #185fa5;
+      --bg-accent: #e6f1fb;
+      --text-success: #0f6e56;
+      --bg-success: #e1f5ee;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--surface-0);
+      display: grid;
+      place-items: center;
+      padding: 2rem 1rem;
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+    .disp { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; }
+    #phone {
+      width: 390px;
+      max-width: 100%;
+      height: min(820px, 92vh);
+      background: var(--surface-2);
+      border: 0.5px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px -30px rgba(20, 18, 12, 0.35);
+    }
+    .head {
+      padding: 15px 17px 13px;
+      border-bottom: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      flex-shrink: 0;
+    }
+    #screen { flex: 1; overflow-y: auto; padding: 12px 15px 16px; }
+    #screen::-webkit-scrollbar { width: 0; }
+    #screen { scrollbar-width: none; }
+    .chips { display: flex; gap: 7px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; margin-bottom: 11px; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      font-size: 12px; padding: 6px 13px; border-radius: 999px;
+      border: 0.5px solid var(--border); background: transparent;
+      color: var(--text-secondary); cursor: pointer; white-space: nowrap;
+      transition: all .15s; flex-shrink: 0;
+    }
+    .chip.active { background: var(--text-primary); color: var(--surface-2); border-color: var(--text-primary); font-weight: 600; }
+    .card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 14px; padding: 13px; margin-bottom: 11px; }
+    .av {
+      position: relative; width: 42px; height: 42px; border-radius: 50%;
+      overflow: hidden; background: var(--bg-accent); color: var(--text-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .add-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1.5px solid var(--text-accent); background: transparent; color: var(--text-accent);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: all .15s;
+    }
+    .add-btn:hover { background: var(--bg-accent); }
+    .add-btn.added { background: var(--text-accent); color: #fff; border-color: var(--text-accent); cursor: default; }
+    .btn-mini {
+      font-size: 12px; padding: 7px 13px; border-radius: 10px;
+      border: 0.5px solid var(--border-strong); background: transparent;
+      color: var(--text-primary); cursor: pointer; font-weight: 500;
+    }
+    .btn-primary { background: var(--text-accent); color: #fff; border-color: var(--text-accent); }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .thumb { position: relative; aspect-ratio: 4/5; border-radius: 9px; overflow: hidden; background: var(--surface-1); }
+    .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .hero { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; background: var(--surface-1); }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    input {
+      font-family: 'Manrope', sans-serif; font-size: 13px; height: 36px; padding: 0 12px;
+      border: 0.5px solid var(--border-strong); border-radius: 10px;
+      background: var(--surface-2); color: var(--text-primary); outline: none;
+    }
+    input:focus { border-color: var(--text-accent); box-shadow: 0 0 0 3px var(--bg-accent); }
+    .nav { display: flex; border-top: 0.5px solid var(--border); background: var(--surface-2); flex-shrink: 0; }
+    .nav button {
+      flex: 1; background: none; border: none; padding: 9px 0 11px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: var(--text-muted); font-family: 'Manrope', sans-serif; font-size: 10.5px; cursor: pointer;
+    }
+    .nav button i { font-size: 21px; }
+    .nav button.active { color: var(--text-accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div id="phone">
+    <div class="head">
+      <div style="flex:1; min-width:0;">
+        <p class="disp" style="margin:0; font-size:22px; font-weight:700; line-height:1.05;">Design Week SF</p>
+        <p style="margin:3px 0 0; font-size:12px; color:var(--text-secondary);">June 2026 · 214 attendees</p>
+      </div>
+      <span id="toast" style="font-size:12px; color:var(--text-success); opacity:0; transition:opacity .3s;">Request sent</span>
+      <button id="collab-btn" aria-label="Your collabs" style="position:relative; border:0.5px solid var(--border); background:transparent; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-primary);">
+        <i class="ti ti-messages" style="font-size:19px;" aria-hidden="true"></i>
+        <span id="collab-badge" style="position:absolute; top:-6px; right:-6px; min-width:17px; height:17px; padding:0 4px; border-radius:999px; background:var(--text-accent); color:#fff; font-size:10px; display:none; align-items:center; justify-content:center; font-weight:600;">1</span>
+      </button>
+    </div>
+    <div id="screen"></div>
+    <div class="nav">
+      <button data-tab="feed"><i class="ti ti-photo" aria-hidden="true"></i>Feed</button>
+      <button data-tab="classifieds"><i class="ti ti-clipboard-text" aria-hidden="true"></i>Classifieds</button>
+      <button data-tab="connect"><i class="ti ti-users-plus" aria-hidden="true"></i>Connect</button>
+      <button data-tab="profile"><i class="ti ti-user" aria-hidden="true"></i>Profile</button>
+    </div>
+  </div>
+
+  <script>
+    const R = 'https://randomuser.me/api/portraits/';
+    const attendees = [
+      { id: 'maya', name: 'Maya Rodriguez', initials: 'MR', img: R + 'women/79.jpg', cat: 'Design', service: 'Visual identity', blurb: 'Logo systems and brand kits for early-stage products.', wants: 'A bold consumer brand identity', kw: 'branding,packaging', seed: 1, verified: true, status: 'none' },
+      { id: 'nina', name: 'Nina Alvarez', initials: 'NA', img: R + 'women/63.jpg', cat: 'Design', service: 'Illustration', blurb: 'Editorial illustration and playful brand mascots.', wants: 'Packaging illustration for her book', kw: 'illustration,drawing', seed: 2, verified: false, status: 'none' },
+      { id: 'leo', name: 'Leo Martins', initials: 'LM', img: R + 'men/44.jpg', cat: 'Photography', service: 'Event & product', blurb: 'On-site event coverage and clean product shots.', wants: 'Music and nightlife event work', kw: 'concert,stage', seed: 3, verified: true, status: 'none' },
+      { id: 'theo', name: 'Theo Kim', initials: 'TK', img: R + 'men/4.jpg', cat: 'Photography', service: 'Portraits', blurb: 'Natural-light portraits and founder headshots.', wants: 'A creative founder portrait series', kw: 'portrait,face', seed: 4, verified: false, status: 'none' },
+      { id: 'priya', name: 'Priya Shah', initials: 'PS', img: R + 'women/88.jpg', cat: 'Writing', service: 'Naming & copy', blurb: 'Punchy product copy, taglines, and naming sprints.', wants: 'Naming work for a launched startup', kw: 'typography,lettering', seed: 5, verified: false, status: 'none' },
+      { id: 'sana', name: 'Sana Malik', initials: 'SM', img: R + 'women/48.jpg', cat: 'Writing', service: 'Content strategy', blurb: 'Narrative and content systems for launches.', wants: 'A long-form brand narrative piece', kw: 'magazine,reading', seed: 6, verified: true, status: 'none' },
+      { id: 'devin', name: 'Devin Okafor', initials: 'DO', img: R + 'men/59.jpg', cat: 'Development', service: 'Landing pages', blurb: 'Ships fast React marketing sites, animation-heavy.', wants: 'An animation-heavy product site', kw: 'website,dashboard', seed: 7, verified: true, status: 'none' }
+    ];
+    const you = { id: 'you', name: 'Alex Rivera', initials: 'AR', img: R + 'men/40.jpg', cat: 'Photography', service: 'Event & product', blurb: 'Festival and product photography, high-energy.', wants: 'A fashion editorial series', kw: 'concert,festival', seed: 8, verified: true };
+    const ivy = { id: 'ivy', name: 'Ivy Chen', initials: 'IC', img: R + 'women/60.jpg', cat: 'Design', service: 'Motion graphics', kw: 'animation,motion', seed: 9 };
+
+    const PEOPLE = {}; attendees.forEach(a => PEOPLE[a.id] = a); PEOPLE.you = you; PEOPLE.ivy = ivy;
+
+    const SHOTS = {
+      maya:  ['1561070791-2526d30994b5', '1626785774573-4b799315345d', '1600880292203-757bb62b4baf'],
+      nina:  ['1513364776144-60967b0f800f', '1460661419201-fd4cecdf8a8b', '1596548438137-d51ea5c83ca5'],
+      leo:   ['1470229722913-7c0e2dbbafd3', '1516450360452-9312f5e86fc7', '1501281668745-f7f57925c3b4'],
+      theo:  ['1507003211169-0a1dd7228f2d', '1500648767791-00dcc994a43e', '1534528741775-53994a69daeb'],
+      priya: ['1517842645767-c639042777db', '1455390582262-044cdead277a', '1544716278-ca5e3f4abd8c'],
+      sana:  ['1544716278-ca5e3f4abd8c', '1455390582262-044cdead277a', '1517842645767-c639042777db'],
+      devin: ['1461749280684-dccba630e2f6', '1498050108023-c5249f4df085', '1555066931-4365d14bab8c'],
+      ivy:   ['1596548438137-d51ea5c83ca5', '1513364776144-60967b0f800f', '1460661419201-fd4cecdf8a8b'],
+      you:   ['1470229722913-7c0e2dbbafd3', '1516450360452-9312f5e86fc7', '1501281668745-f7f57925c3b4', '1507003211169-0a1dd7228f2d', '1500648767791-00dcc994a43e', '1534528741775-53994a69daeb']
+    };
+    Object.keys(SHOTS).forEach(id => { if (PEOPLE[id]) PEOPLE[id].shots = SHOTS[id]; });
+
+    const collabs = [
+      { id: 'c1', withId: 'ivy', service: 'Motion graphics', step: 2, messages: [
+        { from: 'them', text: 'Hey! Saw we both hit Design Week. Down to trade — I do a launch teaser, you shoot the stills?' },
+        { from: 'me', text: 'Yes — accepted. 20s teaser for my reel, stills for yours.' }
+      ] }
+    ];
+
+    const feed = [
+      { a: 'maya', b: 'leo', img: '1495474472287-4d71bcdd2085', title: 'Coffee brand identity, shot on launch day', likes: 48, tag: 'Design × Photography' },
+      { a: 'theo', b: 'devin', img: '1500648767791-00dcc994a43e', title: 'Founder portraits for the new product site', likes: 33, tag: 'Photography × Development' },
+      { a: 'nina', b: 'sana', img: '1596548438137-d51ea5c83ca5', title: 'Illustrated brand story for a launch', likes: 61, tag: 'Design × Writing' }
+    ];
+
+    const CATS = ['All', 'Design', 'Photography', 'Writing', 'Development'];
+    const STEPS = ['Requested', 'Accepted', 'In progress', 'Completed'];
+
+    let view = 'feed';
+    let category = 'All';
+    let activeCollab = null;
+
+    const screen = document.getElementById('screen');
+    const toast = document.getElementById('toast');
+    const collabBtn = document.getElementById('collab-btn');
+    const collabBadge = document.getElementById('collab-badge');
+    const navBtns = Array.from(document.querySelectorAll('.nav button'));
+
+    const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+    function showToast(msg) { toast.textContent = msg; toast.style.opacity = '1'; setTimeout(() => { toast.style.opacity = '0'; }, 1600); }
+
+    function avatar(p, size) {
+      const s = size || 42;
+      const fb = 'https://picsum.photos/seed/' + p.id + '/80';
+      return '<div class="av" style="width:' + s + 'px;height:' + s + 'px;font-size:' + Math.round(s / 3.2) + 'px"><span>' + p.initials + '</span><img src="' + p.img + '" alt="" onerror="this.onerror=null;this.src=\'' + fb + '\'"></div>';
+    }
+
+    const U = (id, w, h) => 'https://images.unsplash.com/photo-' + id + '?w=' + w + '&h=' + h + '&fit=crop&q=80';
+    function tile(id) { return '<div class="thumb"><img src="' + U(id, 240, 300) + '" alt="" loading="lazy"></div>'; }
+    function workGrid(p, n) {
+      const s = p.shots || [];
+      let out = '<div class="grid3" style="margin-top:11px">';
+      for (let i = 0; i < n; i++) out += tile(s[i % s.length]);
+      return out + '</div>';
+    }
+
+    function chipsBar() {
+      return '<div class="chips">' + CATS.map(c => {
+        const n = c === 'All' ? attendees.length : attendees.filter(a => a.cat === c).length;
+        return '<button class="chip ' + (c === category ? 'active' : '') + '" data-cat="' + c + '">' + c + ' <span style="opacity:.6">' + n + '</span></button>';
+      }).join('') + '</div>';
+    }
+    function bindChips() {
+      screen.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { category = b.dataset.cat; render(); }));
+    }
+
+    function connect(id) {
+      const a = attendees.find(x => x.id === id);
+      if (a && a.status === 'none') { a.status = 'requested'; showToast('Request sent'); }
+      render();
+    }
+    function bindConnect() {
+      screen.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', () => connect(b.dataset.connect)));
+    }
+
+    function updateBadge() {
+      collabBadge.textContent = collabs.length;
+      collabBadge.style.display = collabs.length ? 'flex' : 'none';
+      const on = view === 'collabs' || view === 'collabDetail';
+      collabBtn.style.background = on ? 'var(--bg-accent)' : 'transparent';
+      collabBtn.style.color = on ? 'var(--text-accent)' : 'var(--text-primary)';
+      navBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === view));
+    }
+
+    function feedView() {
+      screen.innerHTML = feed.map(post => {
+        const A = PEOPLE[post.a], B = PEOPLE[post.b];
+        return '<div class="card" style="padding:0;overflow:hidden">'
+          + '<div style="display:flex;align-items:center;gap:10px;padding:11px 13px">'
+          + '<div style="display:flex">' + avatar(A, 34) + '<div style="margin-left:-10px">' + avatar(B, 34) + '</div></div>'
+          + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(A.name.split(' ')[0]) + ' × ' + esc(B.name.split(' ')[0]) + '</p>'
+          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">' + esc(post.tag) + ' · Design Week SF</p></div></div>'
+          + '<div class="hero" style="border-radius:0;aspect-ratio:1/1"><img src="' + U(post.img, 600, 600) + '" alt=""></div>'
+          + '<div style="padding:11px 13px">'
+          + '<div style="display:flex;gap:15px;align-items:center;margin-bottom:8px;color:var(--text-primary)">'
+          + '<span style="font-size:13px"><i class="ti ti-heart" style="font-size:17px;vertical-align:-3px" aria-hidden="true"></i> ' + post.likes + '</span>'
+          + '<span style="font-size:13px"><i class="ti ti-message-circle" style="font-size:17px;vertical-align:-3px" aria-hidden="true"></i> ' + Math.round(post.likes / 6) + '</span>'
+          + '<span style="margin-left:auto;font-size:11px;color:var(--text-accent);background:var(--bg-accent);padding:3px 9px;border-radius:999px">Collab</span></div>'
+          + '<p style="margin:0;font-size:13px;line-height:1.5"><span style="font-weight:600">' + esc(A.name.split(' ')[0]) + '</span> ' + esc(post.title) + '</p>'
+          + '</div></div>';
+      }).join('');
+    }
+
+    function classifiedsView() {
+      const list = category === 'All' ? attendees : attendees.filter(a => a.cat === category);
+      const trade = '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:11px;border:0.5px solid var(--border);border-radius:11px">'
+        + '<i class="ti ti-arrows-exchange-2" style="font-size:17px;color:var(--text-accent)" aria-hidden="true"></i>'
+        + '<span style="font-size:12px;color:var(--text-secondary);line-height:1.4">Trade for portfolio — post what you want to build, find someone to build it with.</span></div>';
+      screen.innerHTML = chipsBar() + trade + list.map(a => {
+        const btn = a.status === 'requested'
+          ? '<button class="btn-mini" disabled style="opacity:.5">Requested</button>'
+          : '<button class="btn-mini btn-primary" data-connect="' + a.id + '">Respond</button>';
+        return '<div class="card">'
+          + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:9px">' + avatar(a, 38)
+          + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(a.name) + '</p>'
+          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">Offers ' + esc(a.cat.toLowerCase()) + ' · ' + esc(a.service.toLowerCase()) + '</p></div></div>'
+          + '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px">'
+          + '<i class="ti ti-target-arrow" style="font-size:16px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
+          + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Wants to build</p>'
+          + '<p style="margin:1px 0 0;font-size:13.5px;font-weight:500">' + esc(a.wants) + '</p></div>'
+          + btn + '</div></div>';
+      }).join('');
+      bindChips(); bindConnect();
+    }
+
+    function connectView() {
+      const list = category === 'All' ? attendees : attendees.filter(a => a.cat === category);
+      screen.innerHTML = chipsBar() + list.map(a => {
+        const btn = a.status === 'requested'
+          ? '<button class="add-btn added" disabled aria-label="Requested"><i class="ti ti-check" style="font-size:17px" aria-hidden="true"></i></button>'
+          : '<button class="add-btn" data-connect="' + a.id + '" aria-label="Connect"><i class="ti ti-plus" style="font-size:18px" aria-hidden="true"></i></button>';
+        const check = a.verified ? ' <i class="ti ti-rosette-discount-check" style="font-size:13px;color:var(--text-accent);vertical-align:-1px" aria-hidden="true"></i>' : '';
+        return '<div class="card">'
+          + '<div style="display:flex;gap:11px;align-items:center">' + avatar(a)
+          + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:17px">' + esc(a.name) + check + '</p>'
+          + '<p style="margin:2px 0 0;font-size:12px;color:var(--text-secondary)">' + esc(a.cat) + ' · ' + esc(a.service) + '</p></div>' + btn + '</div>'
+          + '<p style="margin:10px 0 0;font-size:13px;line-height:1.5">' + esc(a.blurb) + '</p>'
+          + workGrid(a, 3) + '</div>';
+      }).join('');
+      bindChips(); bindConnect();
+    }
+
+    function profileView() {
+      const p = you;
+      screen.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px">'
+        + avatar(p, 76)
+        + '<p class="disp" style="margin:10px 0 0;font-size:21px">' + esc(p.name) + ' <i class="ti ti-rosette-discount-check" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i></p>'
+        + '<p style="margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)">' + esc(p.cat) + ' · ' + esc(p.service) + '</p>'
+        + '<p style="margin:9px 0 0;font-size:13px;color:var(--text-primary);max-width:280px;line-height:1.5">' + esc(p.blurb) + '</p></div>'
+        + '<div style="display:flex;gap:8px;margin:14px 0">'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">4</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Collabs</p></div>'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">12</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Feed posts</p></div>'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">3</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Events</p></div></div>'
+        + '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px;margin-bottom:14px">'
+        + '<i class="ti ti-target-arrow" style="font-size:16px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
+        + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Your classified · wants to build</p>'
+        + '<p style="margin:1px 0 0;font-size:13.5px;font-weight:500">' + esc(p.wants) + '</p></div>'
+        + '<button class="btn-mini" style="padding:5px 10px">Edit</button></div>'
+        + '<p style="margin:0 0 8px;font-size:13px;font-weight:600" class="disp">Portfolio</p>'
+        + '<div class="grid3">' + (p.shots || []).map(id => tile(id)).join('') + '</div>';
+    }
+
+    function collabsView() {
+      screen.innerHTML = '<p class="disp" style="margin:2px 0 12px;font-size:20px;font-weight:700">Your collabs</p>'
+        + collabs.map(c => {
+          const w = PEOPLE[c.withId]; const done = c.step >= 4;
+          const col = done ? 'var(--text-success)' : 'var(--text-accent)';
+          const bg = done ? 'var(--bg-success)' : 'var(--bg-accent)';
+          return '<div class="card" data-collab="' + c.id + '" style="cursor:pointer;display:flex;gap:11px;align-items:center">' + avatar(w)
+            + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:16px">' + esc(w.name) + '</p>'
+            + '<p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(c.service) + '</p></div>'
+            + '<span style="font-size:11px;padding:3px 10px;border-radius:999px;background:' + bg + ';color:' + col + '">' + STEPS[c.step - 1] + '</span>'
+            + '<i class="ti ti-chevron-right" style="font-size:18px;color:var(--text-muted)" aria-hidden="true"></i></div>';
+        }).join('');
+      screen.querySelectorAll('[data-collab]').forEach(el => el.addEventListener('click', () => { activeCollab = el.dataset.collab; view = 'collabDetail'; render(); }));
+    }
+
+    function tracker(step) {
+      let cells = '';
+      for (let i = 1; i <= 4; i++) {
+        const on = i <= step;
+        const fill = on ? 'var(--text-accent)' : 'var(--border)';
+        const txt = on ? 'var(--text-primary)' : 'var(--text-muted)';
+        const icon = i < step ? '<i class="ti ti-check" style="font-size:13px;color:#fff" aria-hidden="true"></i>' : '<span style="font-size:11px;color:' + (on ? '#fff' : 'var(--text-muted)') + '">' + i + '</span>';
+        cells += '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:54px">'
+          + '<div style="width:22px;height:22px;border-radius:50%;background:' + fill + ';display:flex;align-items:center;justify-content:center">' + icon + '</div>'
+          + '<span style="font-size:10.5px;color:' + txt + ';text-align:center;line-height:1.2">' + STEPS[i - 1] + '</span></div>';
+        if (i < 4) cells += '<div style="flex:1;height:2px;background:' + (i < step ? 'var(--text-accent)' : 'var(--border)') + ';margin:0 2px 16px"></div>';
+      }
+      return '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:4px 2px 12px">' + cells + '</div>';
+    }
+
+    function detailView() {
+      const c = collabs.find(x => x.id === activeCollab); const w = PEOPLE[c.withId];
+      const bubbles = c.messages.map(m => {
+        const mine = m.from === 'me';
+        return '<div style="display:flex;justify-content:' + (mine ? 'flex-end' : 'flex-start') + ';margin-bottom:6px">'
+          + '<div style="max-width:78%;font-size:13px;line-height:1.45;padding:8px 11px;border-radius:13px;'
+          + (mine ? 'background:var(--text-accent);color:#fff' : 'background:var(--surface-1);color:var(--text-primary);border:0.5px solid var(--border)') + '">' + esc(m.text) + '</div></div>';
+      }).join('');
+      const adv = c.step < 4
+        ? '<button class="btn-mini btn-primary" id="advance" style="width:100%;padding:10px">Advance to ' + STEPS[c.step] + ' <i class="ti ti-arrow-right" style="font-size:13px;vertical-align:-2px" aria-hidden="true"></i></button>'
+        : '<div style="text-align:center;font-size:12px;color:var(--text-success);padding:9px"><i class="ti ti-confetti" style="font-size:14px;vertical-align:-2px" aria-hidden="true"></i> Collab complete — posts to both portfolios</div>';
+      screen.innerHTML =
+        '<button id="back" class="btn-mini" style="border:none;padding:2px 0 10px;color:var(--text-secondary)"><i class="ti ti-chevron-left" style="font-size:15px;vertical-align:-2px" aria-hidden="true"></i> Collabs</button>'
+        + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:11px">' + avatar(w)
+        + '<div><p class="disp" style="margin:0;font-size:19px">' + esc(w.name) + '</p><p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(c.service) + '</p></div></div>'
+        + '<div class="card" style="padding:11px 8px">' + tracker(c.step) + '</div>'
+        + '<div style="margin:4px 0 11px">' + adv + '</div>'
+        + '<p style="font-size:12px;color:var(--text-secondary);margin:0 0 8px">Messages</p>'
+        + '<div style="background:var(--surface-1);border-radius:13px;padding:10px;margin-bottom:8px">' + bubbles + '</div>'
+        + '<div style="display:flex;gap:6px"><input id="msg" placeholder="Message ' + esc(w.name.split(' ')[0]) + '" style="flex:1" /><button id="send" class="btn-mini btn-primary"><i class="ti ti-send" style="font-size:15px" aria-hidden="true"></i></button></div>';
+      document.getElementById('back').addEventListener('click', () => { view = 'collabs'; render(); });
+      const a = document.getElementById('advance');
+      if (a) a.addEventListener('click', () => { if (c.step < 4) c.step++; render(); });
+      const input = document.getElementById('msg');
+      function doSend() { const v = input.value.trim(); if (!v) return; c.messages.push({ from: 'me', text: v }); render(); }
+      document.getElementById('send').addEventListener('click', doSend);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSend(); });
+    }
+
+    function render() {
+      updateBadge();
+      if (view === 'feed') return feedView();
+      if (view === 'classifieds') return classifiedsView();
+      if (view === 'connect') return connectView();
+      if (view === 'profile') return profileView();
+      if (view === 'collabs') return collabsView();
+      if (view === 'collabDetail') return detailView();
+    }
+
+    navBtns.forEach(b => b.addEventListener('click', () => { view = b.dataset.tab; activeCollab = null; screen.scrollTop = 0; render(); }));
+    collabBtn.addEventListener('click', () => { view = 'collabs'; activeCollab = null; screen.scrollTop = 0; render(); });
+    render();
+  </script>
+</body>
+</html>
