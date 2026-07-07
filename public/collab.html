@@ -118,14 +118,21 @@
     .banner { padding: 9px 11px; border-radius: 10px; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; margin-bottom: 11px; display: flex; align-items: center; gap: 8px; }
     .banner.success { background: var(--bg-success); color: var(--text-success); }
     .banner.warn { background: #fef3d7; color: #85541b; }
+    .caret-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 0.5px solid var(--border); background: transparent; color: var(--text-primary);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: all .15s;
+    }
+    .caret-btn:hover { background: var(--surface-1); }
   </style>
 </head>
 <body>
   <div id="phone">
     <div class="head">
       <div style="flex:1; min-width:0;">
-        <p class="disp" id="event-name" style="margin:0; font-size:22px; font-weight:700; line-height:1.05;">Loading…</p>
-        <p id="event-sub" style="margin:3px 0 0; font-size:12px; color:var(--text-secondary);"></p>
+        <p class="disp" id="location-name" style="margin:0; font-size:22px; font-weight:700; line-height:1.05;">Loading…</p>
+        <p id="location-sub" style="margin:3px 0 0; font-size:12px; color:var(--text-secondary);"></p>
       </div>
       <span id="toast" style="font-size:12px; color:var(--text-success); opacity:0; transition:opacity .3s;"></span>
       <button id="collab-btn" aria-label="Your collabs" style="position:relative; border:0.5px solid var(--border); background:transparent; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-primary);">
@@ -183,8 +190,8 @@
     let attendees = [];
     let posts = [];
     let collabsList = [];
-    let inbox = [];      // incoming pending connections
-    let outbox = [];     // outgoing pending connections
+    let inbox = [];
+    let outbox = [];
     let activeCollab = null;
     let activeMessagesSub = null;
     let view = 'feed';
@@ -195,8 +202,8 @@
     const $toast = document.getElementById('toast');
     const $collabBtn = document.getElementById('collab-btn');
     const $collabBadge = document.getElementById('collab-badge');
-    const $eventName = document.getElementById('event-name');
-    const $eventSub = document.getElementById('event-sub');
+    const $locationName = document.getElementById('location-name');
+    const $locationSub = document.getElementById('location-sub');
     const $modal = document.getElementById('modal');
 
     function toast(msg, kind) {
@@ -211,21 +218,27 @@
       const { data, error } = await sb.from('events').select('*').eq('slug', cfg.EVENT_SLUG).single();
       if (error) throw error;
       ev = data;
-      $eventName.textContent = ev.name;
-      $eventSub.textContent = ev.subtitle || '';
+      $locationName.textContent = ev.neighborhood || ev.name;
+      $locationSub.textContent = '';
     }
 
     async function loadMe() {
-      const handle = localStorage.getItem('p1_handle');
-      if (!handle) { me = null; return; }
-      const { data } = await sb.from('profiles').select('*').eq('event_id', ev.id).eq('handle', handle).maybeSingle();
+      const meId = localStorage.getItem('p1_profile_id');
+      if (!meId) { me = null; return; }
+      const { data } = await sb.from('profiles').select('*').eq('id', meId).maybeSingle();
       me = data || null;
-      if (!me) localStorage.removeItem('p1_handle');
+      if (!me) localStorage.removeItem('p1_profile_id');
     }
 
     async function loadAttendees() {
       const { data } = await sb.from('profiles').select('*').eq('event_id', ev.id).order('name');
       attendees = (data || []).filter(a => !me || a.id !== me.id);
+      updateLocationSub();
+    }
+
+    function updateLocationSub() {
+      const total = attendees.length + (me ? 1 : 0);
+      $locationSub.textContent = total + ' ' + (total === 1 ? 'person' : 'people') + ' nearby';
     }
 
     async function loadPosts() {
@@ -263,10 +276,10 @@
 
     // ---------- actions ----------
     async function createProfile(form) {
-      // Reserve handles collision: catch unique violation.
+      const handle = form.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
       const payload = {
         event_id: ev.id,
-        handle: form.handle.trim().toLowerCase(),
+        handle: handle,
         name: form.name.trim(),
         category: form.category,
         service: form.service.trim(),
@@ -276,8 +289,16 @@
       };
       const { data, error } = await sb.from('profiles').insert(payload).select().single();
       if (error) throw error;
-      localStorage.setItem('p1_handle', payload.handle);
+      localStorage.setItem('p1_profile_id', data.id);
       me = data;
+    }
+
+    async function updateClassified(wants) {
+      if (!me) return;
+      const { error } = await sb.from('profiles').update({ wants: wants || null }).eq('id', me.id);
+      if (error) { toast(error.message.slice(0, 40), 'err'); return; }
+      me.wants = wants || null;
+      toast('Classified updated');
     }
 
     async function sendConnect(toId, proposal) {
@@ -320,14 +341,13 @@
       const patch = { [field]: true, updated_at: new Date().toISOString() };
       const otherDone = collab.a.id === me.id ? collab.b_done : collab.a_done;
       if (otherDone) {
-        // Both done → publish to Feed.
         patch.step = 4;
         await sb.from('collabs').update(patch).eq('id', collab.id);
         const heroShot = shotsFor(me)[0];
         await sb.from('posts').insert({
           event_id: ev.id, collab_id: collab.id,
           a_profile: collab.a.id, b_profile: collab.b.id,
-          title: (collab.service || 'Collab') + ' — completed at ' + ev.name,
+          title: (collab.service || 'Collab') + ' — completed',
           image_url: U(heroShot, 600, 600),
           tag: collab.a.category + ' × ' + collab.b.category,
           likes: 0
@@ -386,7 +406,7 @@
           + '<div style="display:flex;align-items:center;gap:10px;padding:11px 13px">'
           + '<div style="display:flex">' + avatar(A, 34) + '<div style="margin-left:-10px">' + avatar(B, 34) + '</div></div>'
           + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(A.name.split(' ')[0]) + ' × ' + esc(B.name.split(' ')[0]) + '</p>'
-          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">' + esc(p.tag || '') + ' · ' + esc(ev.name) + '</p></div></div>'
+          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">' + esc(p.tag || '') + '</p></div></div>'
           + '<div class="hero"><img src="' + esc(p.image_url) + '" alt=""></div>'
           + '<div style="padding:11px 13px">'
           + '<div style="display:flex;gap:15px;align-items:center;margin-bottom:8px;color:var(--text-primary)">'
@@ -404,12 +424,23 @@
       const trade = '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:11px;border:0.5px solid var(--border);border-radius:11px">'
         + '<i class="ti ti-arrows-exchange-2" style="font-size:17px;color:var(--text-accent)" aria-hidden="true"></i>'
         + '<span style="font-size:12px;color:var(--text-secondary);line-height:1.4">Trade for portfolio — post what you want to build, find someone to build it with.</span></div>';
+
+      const myClassified = me
+        ? '<div class="card" style="margin-bottom:14px">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'
+          + '<i class="ti ti-pencil" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i>'
+          + '<span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Your classified</span></div>'
+          + '<textarea id="my-classified" rows="2" placeholder="What do you want to build? Post it here." style="margin-bottom:8px">' + esc(me.wants || '') + '</textarea>'
+          + '<button class="btn-mini btn-primary" id="save-classified" style="width:100%;padding:9px">' + (me.wants ? 'Update classified' : 'Post classified') + '</button>'
+          + '</div>'
+        : '';
+
       const empty = list.length ? '' : '<p style="font-size:13px;color:var(--text-secondary);text-align:center;padding:24px 20px">No classifieds in this category yet.</p>';
-      $screen.innerHTML = chipsBar() + trade + list.map(a => {
+      $screen.innerHTML = chipsBar() + trade + myClassified + list.map(a => {
         const sent = sentIds.has(a.id);
         const btn = sent
-          ? '<button class="btn-mini" disabled style="opacity:.5">Requested</button>'
-          : '<button class="btn-mini btn-primary" data-respond="' + a.id + '">Respond</button>';
+          ? '<button class="caret-btn" disabled style="opacity:.4"><i class="ti ti-check" style="font-size:17px" aria-hidden="true"></i></button>'
+          : '<button class="caret-btn" data-respond="' + a.id + '" aria-label="Respond"><i class="ti ti-chevron-right" style="font-size:18px" aria-hidden="true"></i></button>';
         return '<div class="card">'
           + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:9px">' + avatar(a, 38)
           + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(a.name) + '</p>'
@@ -422,12 +453,23 @@
       }).join('') + empty;
       $screen.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { category = b.dataset.cat; render(); }));
       $screen.querySelectorAll('[data-respond]').forEach(b => b.addEventListener('click', () => openProposeSheet(b.dataset.respond, 'Respond to their want')));
+      const saveBtn = document.getElementById('save-classified');
+      if (saveBtn) saveBtn.addEventListener('click', async () => {
+        const val = document.getElementById('my-classified').value.trim();
+        await updateClassified(val);
+        render();
+      });
     }
 
     function connectView() {
       const list = category === 'All' ? attendees : attendees.filter(a => a.category === category);
       const sentIds = new Set(outbox.map(o => o.to_profile));
-      $screen.innerHTML = chipsBar() + list.map(a => {
+
+      const locationBanner = '<div class="banner" style="margin-bottom:14px">'
+        + '<i class="ti ti-map-pin" style="font-size:16px" aria-hidden="true"></i>'
+        + '<span>Showing people nearby in <strong>' + esc(ev.neighborhood || ev.name) + '</strong></span></div>';
+
+      $screen.innerHTML = locationBanner + chipsBar() + list.map(a => {
         const sent = sentIds.has(a.id);
         const btn = sent
           ? '<button class="add-btn added" disabled aria-label="Requested"><i class="ti ti-check" style="font-size:17px" aria-hidden="true"></i></button>'
@@ -454,25 +496,21 @@
         + (me.blurb ? '<p style="margin:9px 0 0;font-size:13px;color:var(--text-primary);max-width:280px;line-height:1.5">' + esc(me.blurb) + '</p>' : '') + '</div>'
         + '<div style="display:flex;gap:8px;margin:14px 0">'
         + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + collabsList.length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Collabs</p></div>'
-        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + posts.filter(p => p.a && (p.a.id === me.id || (p.b && p.b.id === me.id))).length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Feed posts</p></div>'
-        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">1</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Events</p></div></div>'
-        + (me.wants
-            ? '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px;margin-bottom:14px">'
-              + '<i class="ti ti-target-arrow" style="font-size:16px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
-              + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Your classified · wants to build</p>'
-              + '<p style="margin:1px 0 0;font-size:13.5px;font-weight:500">' + esc(me.wants) + '</p></div></div>'
-            : '<div style="padding:10px 12px;background:var(--surface-1);border-radius:10px;margin-bottom:14px;text-align:center;font-size:12px;color:var(--text-secondary)">Add a classified to appear in the Classifieds tab.</div>')
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + posts.filter(p => p.a && (p.a.id === me.id || (p.b && p.b.id === me.id))).length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Feed posts</p></div></div>'
         + '<p style="margin:0 0 8px;font-size:13px;font-weight:600" class="disp">Portfolio</p>'
         + '<div class="grid3">' + shots.map(id => tile(id)).join('') + '</div>'
         + '<button id="sign-out" class="btn-mini" style="margin-top:16px;width:100%;padding:10px;color:var(--text-secondary)">Sign out</button>';
       const so = document.getElementById('sign-out');
       if (so) so.addEventListener('click', () => {
-        localStorage.removeItem('p1_handle');
+        localStorage.removeItem('p1_profile_id');
         location.reload();
       });
     }
 
     function collabsView() {
+      const closeBtn = '<div style="display:flex;align-items:center;margin-bottom:10px">'
+        + '<button id="close-collabs" class="btn-mini" style="border:none;padding:2px 0;color:var(--text-secondary)"><i class="ti ti-x" style="font-size:16px;vertical-align:-2px" aria-hidden="true"></i> Close</button></div>';
+
       const requests = inbox.length
         ? '<p class="disp" style="margin:2px 0 8px;font-size:16px;font-weight:700">Requests</p>'
           + inbox.map(r => {
@@ -505,7 +543,8 @@
       const empty = !inbox.length && !collabsList.length
         ? '<div style="text-align:center;padding:60px 20px;color:var(--text-secondary)"><i class="ti ti-users" style="font-size:32px" aria-hidden="true"></i><p style="font-size:13px;margin:12px 0 0">No collabs or requests yet.</p></div>'
         : '';
-      $screen.innerHTML = requests + active + empty;
+      $screen.innerHTML = closeBtn + requests + active + empty;
+      document.getElementById('close-collabs').addEventListener('click', () => { view = 'feed'; render(); });
       $screen.querySelectorAll('[data-collab]').forEach(el => el.addEventListener('click', () => { activeCollab = el.dataset.collab; view = 'collabDetail'; render(); }));
       $screen.querySelectorAll('[data-decline]').forEach(el => el.addEventListener('click', async () => { await declineConnect(el.dataset.decline); }));
       $screen.querySelectorAll('[data-accept]').forEach(el => el.addEventListener('click', async () => {
@@ -602,30 +641,26 @@
 
     function openOnboardingSheet() {
       openSheet(
-        '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Join ' + esc(ev.name) + '</p>'
-        + '<p style="margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)">Trade-for-portfolio — bring what you offer, name what you want to build.</p>'
+        '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Welcome to Project One</p>'
+        + '<p style="margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)">Trade for portfolio — bring what you offer, find people nearby to build with.</p>'
         + '<div class="field"><label>Full name</label><input id="f-name" placeholder="Your name"></div>'
-        + '<div class="field"><label>Handle</label><input id="f-handle" placeholder="lowercase, no spaces"></div>'
         + '<div class="field"><label>Category</label><select id="f-category">'
           + CATS.filter(c => c !== 'All').map(c => '<option>' + c + '</option>').join('')
         + '</select></div>'
         + '<div class="field"><label>What you offer (one line)</label><input id="f-service" placeholder="e.g. Portrait photography"></div>'
         + '<div class="field"><label>Short bio</label><textarea id="f-blurb" rows="2" placeholder="One-line pitch, optional"></textarea></div>'
-        + '<div class="field"><label>What you want to build (your classified)</label><textarea id="f-wants" rows="2" placeholder="A portfolio piece you would love to create"></textarea></div>'
-        + '<button id="f-submit" class="btn-mini btn-primary" style="width:100%;padding:11px;margin-top:6px">Join event</button>',
+        + '<button id="f-submit" class="btn-mini btn-primary" style="width:100%;padding:11px;margin-top:6px">Get started</button>',
         { center: true, dismissable: false }
       );
       document.getElementById('f-submit').addEventListener('click', async () => {
         const form = {
           name: document.getElementById('f-name').value,
-          handle: document.getElementById('f-handle').value,
           category: document.getElementById('f-category').value,
           service: document.getElementById('f-service').value,
           blurb: document.getElementById('f-blurb').value,
-          wants: document.getElementById('f-wants').value
+          wants: ''
         };
-        if (!form.name.trim() || !form.handle.trim() || !form.service.trim()) { toast('Name, handle, service required', 'err'); return; }
-        if (!/^[a-z0-9_]+$/i.test(form.handle)) { toast('Handle: letters/numbers/_ only', 'err'); return; }
+        if (!form.name.trim() || !form.service.trim()) { toast('Name and service are required', 'err'); return; }
         try {
           await createProfile(form);
           closeSheet();
@@ -672,7 +707,7 @@
       if (view === 'collabDetail') return detailView();
     }
 
-    // ---------- global subscriptions (keep collabs + inbox fresh) ----------
+    // ---------- global subscriptions ----------
     function openGlobalSubs() {
       sb.channel('conn-' + (me ? me.id : 'anon'))
         .on('postgres_changes', { event: '*', schema: 'public', table: 'connections' }, async () => {
@@ -702,7 +737,7 @@
         openGlobalSubs();
         render();
       } catch (e) {
-        $screen.innerHTML = '<div style="padding:20px;color:#a32d2d;font-size:13px">Could not load event: ' + esc(e.message || String(e)) + '</div>';
+        $screen.innerHTML = '<div style="padding:20px;color:#a32d2d;font-size:13px">Could not load: ' + esc(e.message || String(e)) + '</div>';
       }
     })();
   })();
