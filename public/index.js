@@ -826,8 +826,8 @@ function updateItemStatus(type, id, status) {
       element.style.opacity = '0.4';
     } else {
       rightHtml = `
-        <span class="status-badge unknown">Unknown</span>
-        <a href="${url}" target="_blank" rel="noopener noreferrer" class="row-action-btn" aria-label="View profile">
+        <span class="status-badge unknown">Verify</span>
+        <a href="${url}" target="_blank" rel="noopener noreferrer" class="row-action-btn" title="Confirm on ${platform ? platform.name : 'platform'}" aria-label="Confirm handle on platform">
           <i class="fa-solid fa-arrow-up-right-from-square"></i>
         </a>
       `;
