@@ -197,6 +197,9 @@
     let view = 'feed';
     let sheetView = null;
     let category = 'All';
+    let session = null;        // Supabase Auth session (real auth)
+    let myCoords = null;       // {lat,lng} from real browser geolocation
+    let geoLabel = null;       // reverse-geocoded neighborhood name
 
     const $screen = document.getElementById('screen');
     const $toast = document.getElementById('toast');
@@ -213,21 +216,69 @@
       setTimeout(() => { $toast.style.opacity = '0'; }, 1800);
     }
 
+    // ---------- geolocation ----------
+    function locLabel() { return geoLabel || (ev && (ev.neighborhood || ev.name)) || 'Nearby'; }
+
+    function distanceMi(a, b) {
+      if (!a || !b || a.lat == null || a.lng == null || b.lat == null || b.lng == null) return null;
+      const R = 3958.8, toRad = d => d * Math.PI / 180;
+      const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+      const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+    }
+    function sortByDistance(list) {
+      if (!myCoords) return list;
+      return [...list].sort((a, b) => {
+        const da = distanceMi(myCoords, a), db = distanceMi(myCoords, b);
+        if (da == null && db == null) return 0;
+        if (da == null) return 1;
+        if (db == null) return -1;
+        return da - db;
+      });
+    }
+    function distanceLabel(p) {
+      const d = distanceMi(myCoords, p);
+      if (d == null) return '';
+      const txt = d < 0.1 ? 'here' : ((d < 10 ? d.toFixed(1) : Math.round(d)) + ' mi');
+      return ' · <i class="ti ti-map-pin" style="font-size:11px;vertical-align:-1px" aria-hidden="true"></i> ' + txt;
+    }
+    async function detectLocation() {
+      if (!navigator.geolocation) return;
+      await new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          myCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          try {
+            const r = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='
+              + myCoords.lat + '&longitude=' + myCoords.lng + '&localityLanguage=en');
+            const j = await r.json();
+            geoLabel = j.locality || j.city || j.principalSubdivision || null;
+          } catch (_) {}
+          if (geoLabel) $locationName.textContent = geoLabel;
+          if (me && me.id) {
+            try {
+              await sb.from('profiles').update({ lat: myCoords.lat, lng: myCoords.lng }).eq('id', me.id);
+              me.lat = myCoords.lat; me.lng = myCoords.lng;
+            } catch (_) {}
+          }
+          if (view === 'connect') render();
+          resolve();
+        }, () => resolve(), { timeout: 6000, maximumAge: 300000 });
+      });
+    }
+
     // ---------- data ----------
     async function loadEvent() {
       const { data, error } = await sb.from('events').select('*').eq('slug', cfg.EVENT_SLUG).single();
       if (error) throw error;
       ev = data;
-      $locationName.textContent = ev.neighborhood || ev.name;
+      $locationName.textContent = locLabel();
       $locationSub.textContent = '';
     }
 
     async function loadMe() {
-      const meId = localStorage.getItem('p1_profile_id');
-      if (!meId) { me = null; return; }
-      const { data } = await sb.from('profiles').select('*').eq('id', meId).maybeSingle();
+      if (!session) { me = null; return; }
+      const { data } = await sb.from('profiles').select('*').eq('user_id', session.user.id).maybeSingle();
       me = data || null;
-      if (!me) localStorage.removeItem('p1_profile_id');
     }
 
     async function loadAttendees() {
@@ -276,20 +327,24 @@
 
     // ---------- actions ----------
     async function createProfile(form) {
-      const handle = form.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      // random suffix keeps handles unique per event without blocking sign-up
+      const handle = form.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20)
+        + Math.random().toString(36).slice(2, 6);
       const payload = {
         event_id: ev.id,
+        user_id: session ? session.user.id : null,
         handle: handle,
         name: form.name.trim(),
         category: form.category,
         service: form.service.trim(),
         blurb: form.blurb.trim() || null,
         wants: form.wants.trim() || null,
-        avatar_url: form.avatar_url || null
+        avatar_url: form.avatar_url || null,
+        lat: myCoords ? myCoords.lat : null,
+        lng: myCoords ? myCoords.lng : null
       };
       const { data, error } = await sb.from('profiles').insert(payload).select().single();
       if (error) throw error;
-      localStorage.setItem('p1_profile_id', data.id);
       me = data;
     }
 
@@ -462,12 +517,13 @@
     }
 
     function connectView() {
-      const list = category === 'All' ? attendees : attendees.filter(a => a.category === category);
+      let list = category === 'All' ? attendees : attendees.filter(a => a.category === category);
+      list = sortByDistance(list);
       const sentIds = new Set(outbox.map(o => o.to_profile));
 
       const locationBanner = '<div class="banner" style="margin-bottom:14px">'
         + '<i class="ti ti-map-pin" style="font-size:16px" aria-hidden="true"></i>'
-        + '<span>Showing people nearby in <strong>' + esc(ev.neighborhood || ev.name) + '</strong></span></div>';
+        + '<span>Showing people nearby in <strong>' + esc(locLabel()) + '</strong></span></div>';
 
       $screen.innerHTML = locationBanner + chipsBar() + list.map(a => {
         const sent = sentIds.has(a.id);
@@ -478,7 +534,7 @@
         return '<div class="card">'
           + '<div style="display:flex;gap:11px;align-items:center">' + avatar(a)
           + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:17px">' + esc(a.name) + check + '</p>'
-          + '<p style="margin:2px 0 0;font-size:12px;color:var(--text-secondary)">' + esc(a.category) + ' · ' + esc(a.service) + '</p></div>' + btn + '</div>'
+          + '<p style="margin:2px 0 0;font-size:12px;color:var(--text-secondary)">' + esc(a.category) + ' · ' + esc(a.service) + distanceLabel(a) + '</p></div>' + btn + '</div>'
           + (a.blurb ? '<p style="margin:10px 0 0;font-size:13px;line-height:1.5">' + esc(a.blurb) + '</p>' : '')
           + workGrid(a, 3) + '</div>';
       }).join('');
@@ -501,8 +557,8 @@
         + '<div class="grid3">' + shots.map(id => tile(id)).join('') + '</div>'
         + '<button id="sign-out" class="btn-mini" style="margin-top:16px;width:100%;padding:10px;color:var(--text-secondary)">Sign out</button>';
       const so = document.getElementById('sign-out');
-      if (so) so.addEventListener('click', () => {
-        localStorage.removeItem('p1_profile_id');
+      if (so) so.addEventListener('click', async () => {
+        await sb.auth.signOut();
         location.reload();
       });
     }
@@ -639,6 +695,49 @@
     }
     function closeSheet() { $modal.style.display = 'none'; $modal.innerHTML = ''; }
 
+    function openAuthSheet(step, email) {
+      step = step || 'email';
+      if (step === 'email') {
+        openSheet(
+          '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Sign in to Project One</p>'
+          + '<p style="margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)">We\'ll email you a 6-digit code — no password to remember.</p>'
+          + '<div class="field"><label>Email</label><input id="a-email" type="email" placeholder="you@email.com" value="' + esc(email || '') + '"></div>'
+          + '<button id="a-send" class="btn-mini btn-primary" style="width:100%;padding:11px;margin-top:6px">Email me a code</button>',
+          { center: true, dismissable: false }
+        );
+        document.getElementById('a-send').addEventListener('click', async () => {
+          const em = document.getElementById('a-email').value.trim();
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast('Enter a valid email', 'err'); return; }
+          const btn = document.getElementById('a-send'); btn.disabled = true; btn.textContent = 'Sending…';
+          const { error } = await sb.auth.signInWithOtp({ email: em, options: { shouldCreateUser: true } });
+          if (error) { toast(error.message.slice(0, 40), 'err'); btn.disabled = false; btn.textContent = 'Email me a code'; return; }
+          openAuthSheet('code', em);
+        });
+      } else {
+        openSheet(
+          '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Enter your code</p>'
+          + '<p style="margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)">Sent to ' + esc(email) + '.</p>'
+          + '<div class="field"><label>6-digit code</label><input id="a-code" inputmode="numeric" placeholder="123456"></div>'
+          + '<button id="a-verify" class="btn-mini btn-primary" style="width:100%;padding:11px;margin-top:6px">Verify &amp; continue</button>'
+          + '<button id="a-back" class="btn-mini" style="width:100%;padding:9px;margin-top:8px;border:none;color:var(--text-secondary)">Use a different email</button>',
+          { center: true, dismissable: false }
+        );
+        document.getElementById('a-back').addEventListener('click', () => openAuthSheet('email', email));
+        document.getElementById('a-verify').addEventListener('click', async () => {
+          const token = document.getElementById('a-code').value.trim();
+          if (token.length < 6) { toast('Enter the 6-digit code', 'err'); return; }
+          const btn = document.getElementById('a-verify'); btn.disabled = true; btn.textContent = 'Verifying…';
+          const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+          if (error) { toast(error.message.slice(0, 40), 'err'); btn.disabled = false; btn.textContent = 'Verify & continue'; return; }
+          session = data.session;
+          closeSheet();
+          await loadMe();
+          await reloadAll();
+          render();
+        });
+      }
+    }
+
     function openOnboardingSheet() {
       openSheet(
         '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Welcome to Project One</p>'
@@ -698,6 +797,7 @@
     // ---------- master render ----------
     function render() {
       updateBadge();
+      if (!session) { openAuthSheet(); return; }
       if (!me) { openOnboardingSheet(); return; }
       if (view === 'feed') return feedView();
       if (view === 'classifieds') return classifiedsView();
@@ -729,13 +829,18 @@
     }));
     $collabBtn.addEventListener('click', () => { closeMessagesSub(); view = 'collabs'; activeCollab = null; $screen.scrollTop = 0; render(); });
 
+    sb.auth.onAuthStateChange((_event, s) => { session = s; });
+
     (async () => {
       try {
+        const { data: { session: s } } = await sb.auth.getSession();
+        session = s;
         await loadEvent();
         await loadMe();
         await reloadAll();
         openGlobalSubs();
         render();
+        detectLocation();  // async, non-blocking — updates header + coords when granted
       } catch (e) {
         $screen.innerHTML = '<div style="padding:20px;color:#a32d2d;font-size:13px">Could not load: ' + esc(e.message || String(e)) + '</div>';
       }
