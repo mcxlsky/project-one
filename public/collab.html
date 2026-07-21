@@ -22,6 +22,8 @@
       --bg-accent: #e6f1fb;
       --text-success: #0f6e56;
       --bg-success: #e1f5ee;
+      --text-match: #8b5c0a;
+      --bg-match: #fef3d7;
       --radius: 8px;
     }
     * { box-sizing: border-box; }
@@ -98,9 +100,21 @@
       flex: 1; background: none; border: none; padding: 9px 0 11px;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
       color: var(--text-muted); font-family: 'Manrope', sans-serif; font-size: 10.5px; cursor: pointer;
+      position: relative;
     }
     .nav button i { font-size: 21px; }
     .nav button.active { color: var(--text-accent); font-weight: 600; }
+    .nav-badge {
+      position: absolute; top: 4px; right: calc(50% - 18px);
+      min-width: 15px; height: 15px; padding: 0 3px; border-radius: 999px;
+      background: var(--text-accent); color: #fff; font-size: 9px;
+      display: none; align-items: center; justify-content: center; font-weight: 600;
+    }
+    .match-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; padding: 3px 9px; border-radius: 999px;
+      background: var(--bg-match); color: var(--text-match); font-weight: 600;
+    }
     .sheet {
       position: absolute; inset: 0; z-index: 10;
       background: rgba(20, 18, 12, 0.35);
@@ -117,7 +131,7 @@
     .field label { display: block; font-size: 11px; color: var(--text-secondary); margin: 0 0 5px; }
     .banner { padding: 9px 11px; border-radius: 10px; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; margin-bottom: 11px; display: flex; align-items: center; gap: 8px; }
     .banner.success { background: var(--bg-success); color: var(--text-success); }
-    .banner.warn { background: #fef3d7; color: #85541b; }
+    .banner.warn { background: var(--bg-match); color: var(--text-match); }
     .caret-btn {
       width: 34px; height: 34px; border-radius: 50%;
       border: 0.5px solid var(--border); background: transparent; color: var(--text-primary);
@@ -125,6 +139,213 @@
       cursor: pointer; flex-shrink: 0; transition: all .15s;
     }
     .caret-btn:hover { background: var(--surface-1); }
+
+    /* Onboarding */
+    .onboard {
+      position: absolute; inset: 0; z-index: 20;
+      background: var(--surface-2);
+      display: flex; flex-direction: column;
+    }
+    .onboard-progress {
+      display: flex; gap: 5px; padding: 16px 20px 0;
+    }
+    .onboard-bar {
+      flex: 1; height: 3px; border-radius: 99px;
+      background: var(--border);
+      transition: background 0.4s ease;
+    }
+    .onboard-bar.filled { background: var(--text-accent); }
+    .onboard-slides {
+      flex: 1; position: relative; overflow: hidden;
+    }
+    .onboard-slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      padding: 28px 22px 20px;
+      opacity: 0; transform: translateX(60px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+      overflow-y: auto;
+    }
+    .onboard-slide.active {
+      opacity: 1; transform: translateX(0);
+      pointer-events: auto;
+    }
+    .onboard-slide.exit-left {
+      opacity: 0; transform: translateX(-60px);
+    }
+    .onboard-step-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-accent);
+      margin: 0 0 8px;
+    }
+    .onboard-title {
+      font-size: 26px; font-weight: 700; line-height: 1.15;
+      margin: 0 0 6px;
+    }
+    .onboard-sub {
+      font-size: 14px; color: var(--text-secondary); line-height: 1.5;
+      margin: 0 0 28px; font-weight: 400;
+    }
+    .onboard-input {
+      font-size: 16px; height: 48px; padding: 0 16px;
+      border: 1.5px solid var(--border-strong); border-radius: 12px;
+      background: var(--surface-2); color: var(--text-primary);
+      font-family: 'Manrope', sans-serif; outline: none; width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .onboard-input:focus { border-color: var(--text-accent); box-shadow: 0 0 0 3px var(--bg-accent); }
+    .onboard-input::placeholder { color: var(--text-muted); }
+    .onboard-textarea {
+      font-size: 15px; padding: 14px 16px;
+      border: 1.5px solid var(--border-strong); border-radius: 12px;
+      background: var(--surface-2); color: var(--text-primary);
+      font-family: 'Manrope', sans-serif; outline: none; width: 100%;
+      resize: none; line-height: 1.5;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .onboard-textarea:focus { border-color: var(--text-accent); box-shadow: 0 0 0 3px var(--bg-accent); }
+    .onboard-textarea::placeholder { color: var(--text-muted); }
+    .onboard-cats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .onboard-cat {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px; border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--surface-2); cursor: pointer;
+      transition: all 0.2s ease; font-size: 14px; font-weight: 500;
+    }
+    .onboard-cat:hover { border-color: var(--border-strong); background: var(--surface-1); }
+    .onboard-cat.selected { border-color: var(--text-accent); background: var(--bg-accent); }
+    .onboard-cat-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--surface-1); display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: var(--text-primary); flex-shrink: 0;
+    }
+    .onboard-cat.selected .onboard-cat-icon { background: var(--text-accent); color: #fff; }
+    .onboard-footer {
+      padding: 12px 22px 18px;
+      display: flex; gap: 10px;
+    }
+    .onboard-btn {
+      flex: 1; padding: 14px; border-radius: 12px;
+      font-family: 'Manrope', sans-serif; font-size: 15px;
+      font-weight: 600; cursor: pointer; border: none;
+      transition: all 0.2s ease; text-align: center;
+    }
+    .onboard-btn-primary {
+      background: var(--text-accent); color: #fff;
+    }
+    .onboard-btn-primary:hover { filter: brightness(1.08); }
+    .onboard-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .onboard-btn-back {
+      background: var(--surface-1); color: var(--text-secondary);
+      flex: 0 0 auto; width: 48px; padding: 14px 0;
+    }
+    .onboard-btn-back:hover { background: var(--border); }
+    .onboard-welcome {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 40px 28px;
+    }
+    .onboard-welcome-icon {
+      width: 72px; height: 72px; border-radius: 18px;
+      background: var(--bg-accent); display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+    }
+    .onboard-welcome-icon i { font-size: 32px; color: var(--text-accent); }
+    .onboard-field-label {
+      font-size: 12px; font-weight: 600; color: var(--text-secondary);
+      margin: 0 0 8px; display: block;
+    }
+    .onboard-field + .onboard-field { margin-top: 16px; }
+
+    /* Chip/tag input */
+    .chip-input-wrap {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 10px 14px; min-height: 48px;
+      border: 1.5px solid var(--border-strong); border-radius: 12px;
+      background: var(--surface-2); cursor: text;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      align-items: center;
+    }
+    .chip-input-wrap:focus-within { border-color: var(--text-accent); box-shadow: 0 0 0 3px var(--bg-accent); }
+    .chip-input-wrap .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 8px;
+      background: var(--bg-accent); color: var(--text-accent);
+      font-size: 13px; font-weight: 500; white-space: nowrap;
+      animation: chipIn 0.2s ease;
+    }
+    @keyframes chipIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .chip-input-wrap .tag-x {
+      width: 16px; height: 16px; border: none; background: none;
+      color: var(--text-accent); cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; opacity: 0.6; border-radius: 50%;
+      transition: opacity 0.15s, background 0.15s;
+    }
+    .chip-input-wrap .tag-x:hover { opacity: 1; background: rgba(24,95,165,0.12); }
+    .chip-input-wrap input {
+      border: none; outline: none; background: none;
+      font-family: 'Manrope', sans-serif; font-size: 14px;
+      color: var(--text-primary); flex: 1; min-width: 80px;
+      height: 26px; padding: 0;
+    }
+    .chip-input-wrap input::placeholder { color: var(--text-muted); }
+    .chip-hint {
+      font-size: 11px; color: var(--text-muted); margin-top: 6px;
+    }
+
+    /* Portfolio upload cards */
+    .portfolio-slots {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .portfolio-slot {
+      aspect-ratio: 3/4; border-radius: 14px;
+      border: 2px dashed var(--border-strong);
+      background: var(--surface-1); cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; overflow: hidden; position: relative;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .portfolio-slot:hover { border-color: var(--text-accent); background: var(--bg-accent); }
+    .portfolio-slot.has-image { border: none; }
+    .portfolio-slot .slot-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surface-2); display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); font-size: 16px;
+    }
+    .portfolio-slot .slot-label {
+      font-size: 11px; color: var(--text-secondary); font-weight: 500;
+    }
+    .portfolio-slot img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; border-radius: 12px;
+    }
+    .portfolio-slot .slot-remove {
+      position: absolute; top: 6px; right: 6px; z-index: 2;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(0,0,0,0.55); border: none; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 13px;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .portfolio-slot:hover .slot-remove { opacity: 1; }
+    .portfolio-desc {
+      margin-top: 6px;
+    }
+    .portfolio-desc input {
+      font-size: 12px; height: 32px; padding: 0 10px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface-2); color: var(--text-primary);
+      font-family: 'Manrope', sans-serif; width: 100%; outline: none;
+      transition: border-color 0.2s;
+    }
+    .portfolio-desc input:focus { border-color: var(--text-accent); }
+    .portfolio-desc input::placeholder { color: var(--text-muted); }
+    .portfolio-desc input:disabled { opacity: 0.35; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -135,16 +356,12 @@
         <p id="location-sub" style="margin:3px 0 0; font-size:12px; color:var(--text-secondary);"></p>
       </div>
       <span id="toast" style="font-size:12px; color:var(--text-success); opacity:0; transition:opacity .3s;"></span>
-      <button id="collab-btn" aria-label="Your collabs" style="position:relative; border:0.5px solid var(--border); background:transparent; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-primary);">
-        <i class="ti ti-messages" style="font-size:19px;" aria-hidden="true"></i>
-        <span id="collab-badge" style="position:absolute; top:-6px; right:-6px; min-width:17px; height:17px; padding:0 4px; border-radius:999px; background:var(--text-accent); color:#fff; font-size:10px; display:none; align-items:center; justify-content:center; font-weight:600;">0</span>
-      </button>
     </div>
     <div id="screen"></div>
     <div class="nav" id="nav">
-      <button data-tab="feed" class="active"><i class="ti ti-photo" aria-hidden="true"></i>Feed</button>
-      <button data-tab="classifieds"><i class="ti ti-clipboard-text" aria-hidden="true"></i>Classifieds</button>
-      <button data-tab="connect"><i class="ti ti-users-plus" aria-hidden="true"></i>Connect</button>
+      <button data-tab="feed" class="active"><i class="ti ti-home" aria-hidden="true"></i>Feed</button>
+      <button data-tab="discover"><i class="ti ti-compass" aria-hidden="true"></i>Discover</button>
+      <button data-tab="messages"><i class="ti ti-messages" aria-hidden="true"></i>Messages<span class="nav-badge" id="msg-badge">0</span></button>
       <button data-tab="profile"><i class="ti ti-user" aria-hidden="true"></i>Profile</button>
     </div>
     <div id="modal" style="display:none"></div>
@@ -159,6 +376,7 @@
 
     const CATS = ['All', 'Design', 'Photography', 'Writing', 'Development'];
     const STEPS = ['Requested', 'Accepted', 'In progress', 'Completed'];
+    const TWELVE_HOURS = 12 * 60 * 60 * 1000;
     const U = (id, w, h) => 'https://images.unsplash.com/photo-' + id + '?w=' + w + '&h=' + h + '&fit=crop&q=80';
     const DEFAULT_SHOTS = {
       Design:       ['1561070791-2526d30994b5', '1513364776144-60967b0f800f', '1600880292203-757bb62b4baf'],
@@ -185,7 +403,7 @@
     const esc = (s) => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
 
     // ---------- state ----------
-    let ev = null;
+    let checkIn = null;
     let me = null;
     let attendees = [];
     let posts = [];
@@ -195,16 +413,14 @@
     let activeCollab = null;
     let activeMessagesSub = null;
     let view = 'feed';
-    let sheetView = null;
     let category = 'All';
 
     const $screen = document.getElementById('screen');
     const $toast = document.getElementById('toast');
-    const $collabBtn = document.getElementById('collab-btn');
-    const $collabBadge = document.getElementById('collab-badge');
     const $locationName = document.getElementById('location-name');
     const $locationSub = document.getElementById('location-sub');
     const $modal = document.getElementById('modal');
+    const $msgBadge = document.getElementById('msg-badge');
 
     function toast(msg, kind) {
       $toast.textContent = msg;
@@ -213,15 +429,37 @@
       setTimeout(() => { $toast.style.opacity = '0'; }, 1800);
     }
 
-    // ---------- data ----------
-    async function loadEvent() {
-      const { data, error } = await sb.from('events').select('*').eq('slug', cfg.EVENT_SLUG).single();
-      if (error) throw error;
-      ev = data;
-      $locationName.textContent = ev.neighborhood || ev.name;
-      $locationSub.textContent = '';
+    function isExpired(ci) {
+      return (Date.now() - new Date(ci.checked_in_at).getTime()) > TWELVE_HOURS;
     }
 
+    function displayLocation(loc) {
+      return loc.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    // ---------- matching ----------
+    function matchScore(them) {
+      if (!me) return 0;
+      let score = 0;
+      const myWants = (me.wants || '').toLowerCase();
+      const theirWants = (them.wants || '').toLowerCase();
+      const myCat = me.category.toLowerCase();
+      const theirCat = them.category.toLowerCase();
+      const myService = me.service.toLowerCase();
+      const theirService = them.service.toLowerCase();
+      if (myWants && (myWants.includes(theirCat) || myWants.includes(theirService))) score += 2;
+      if (theirWants && (theirWants.includes(myCat) || theirWants.includes(myService))) score += 2;
+      return score;
+    }
+
+    function matchLabel(them) {
+      const s = matchScore(them);
+      if (s >= 4) return '<span class="match-badge"><i class="ti ti-arrows-exchange" style="font-size:13px" aria-hidden="true"></i> Mutual match</span>';
+      if (s >= 2) return '<span class="match-badge"><i class="ti ti-sparkles" style="font-size:13px" aria-hidden="true"></i> Match</span>';
+      return '';
+    }
+
+    // ---------- data ----------
     async function loadMe() {
       const meId = localStorage.getItem('p1_profile_id');
       if (!meId) { me = null; return; }
@@ -230,21 +468,70 @@
       if (!me) localStorage.removeItem('p1_profile_id');
     }
 
+    async function loadActiveCheckIn() {
+      if (!me) { checkIn = null; return; }
+      const ciId = localStorage.getItem('p1_checkin_id');
+      if (ciId) {
+        const { data } = await sb.from('check_ins').select('*').eq('id', ciId).maybeSingle();
+        if (data && !isExpired(data)) { checkIn = data; updateHeader(); return; }
+      }
+      const cutoff = new Date(Date.now() - TWELVE_HOURS).toISOString();
+      const { data } = await sb.from('check_ins').select('*')
+        .eq('profile_id', me.id)
+        .gte('checked_in_at', cutoff)
+        .order('checked_in_at', { ascending: false })
+        .limit(1).maybeSingle();
+      if (data) {
+        checkIn = data;
+        localStorage.setItem('p1_checkin_id', data.id);
+      } else {
+        checkIn = null;
+        localStorage.removeItem('p1_checkin_id');
+      }
+      updateHeader();
+    }
+
+    async function locationProfileIds() {
+      if (!checkIn) return [];
+      const cutoff = new Date(Date.now() - TWELVE_HOURS).toISOString();
+      const { data } = await sb.from('check_ins')
+        .select('profile_id')
+        .eq('location', checkIn.location)
+        .gte('checked_in_at', cutoff);
+      return [...new Set((data || []).map(d => d.profile_id))];
+    }
+
+    function updateHeader() {
+      if (checkIn) {
+        $locationName.textContent = displayLocation(checkIn.location);
+      } else {
+        $locationName.textContent = 'Project One';
+      }
+      $locationSub.textContent = '';
+    }
+
     async function loadAttendees() {
-      const { data } = await sb.from('profiles').select('*').eq('event_id', ev.id).order('name');
+      const ids = await locationProfileIds();
+      if (!ids.length) { attendees = []; updateLocationSub(); return; }
+      const { data } = await sb.from('profiles').select('*').in('id', ids).order('name');
       attendees = (data || []).filter(a => !me || a.id !== me.id);
       updateLocationSub();
     }
 
     function updateLocationSub() {
       const total = attendees.length + (me ? 1 : 0);
-      $locationSub.textContent = total + ' ' + (total === 1 ? 'person' : 'people') + ' nearby';
+      let sub = total + ' ' + (total === 1 ? 'person' : 'people') + ' here';
+      if (checkIn) {
+        const hoursLeft = Math.max(0, 12 - (Date.now() - new Date(checkIn.checked_in_at).getTime()) / 3600000);
+        sub += ' · ' + Math.ceil(hoursLeft) + 'h left';
+      }
+      $locationSub.textContent = sub;
     }
 
     async function loadPosts() {
       const { data } = await sb.from('posts')
         .select('*, a:a_profile(id,name,handle,avatar_url), b:b_profile(id,name,handle,avatar_url)')
-        .eq('event_id', ev.id).order('created_at', { ascending: false });
+        .order('created_at', { ascending: false });
       posts = data || [];
     }
 
@@ -252,7 +539,6 @@
       if (!me) { collabsList = []; return; }
       const { data } = await sb.from('collabs')
         .select('*, a:a_profile(id,name,handle,avatar_url,category,service), b:b_profile(id,name,handle,avatar_url,category,service)')
-        .eq('event_id', ev.id)
         .or('a_profile.eq.' + me.id + ',b_profile.eq.' + me.id)
         .order('updated_at', { ascending: false });
       collabsList = data || [];
@@ -278,7 +564,6 @@
     async function createProfile(form) {
       const handle = form.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
       const payload = {
-        event_id: ev.id,
         handle: handle,
         name: form.name.trim(),
         category: form.category,
@@ -293,17 +578,27 @@
       me = data;
     }
 
-    async function updateClassified(wants) {
+    async function performCheckIn(locationRaw) {
+      const location = locationRaw.toLowerCase().trim();
+      const { data, error } = await sb.from('check_ins')
+        .insert({ profile_id: me.id, location: location })
+        .select().single();
+      if (error) throw error;
+      checkIn = data;
+      localStorage.setItem('p1_checkin_id', data.id);
+      updateHeader();
+    }
+
+    async function updateProfile(fields) {
       if (!me) return;
-      const { error } = await sb.from('profiles').update({ wants: wants || null }).eq('id', me.id);
+      const { error } = await sb.from('profiles').update(fields).eq('id', me.id);
       if (error) { toast(error.message.slice(0, 40), 'err'); return; }
-      me.wants = wants || null;
-      toast('Classified updated');
+      Object.assign(me, fields);
     }
 
     async function sendConnect(toId, proposal) {
       const { error } = await sb.from('connections').insert({
-        event_id: ev.id, from_profile: me.id, to_profile: toId,
+        from_profile: me.id, to_profile: toId,
         proposal: proposal || null, status: 'pending'
       });
       if (error) { toast(error.message.slice(0, 40), 'err'); return; }
@@ -314,7 +609,7 @@
     async function acceptConnect(reqId, fromId, service) {
       await sb.from('connections').update({ status: 'accepted' }).eq('id', reqId);
       const { data: collab } = await sb.from('collabs').insert({
-        event_id: ev.id, a_profile: fromId, b_profile: me.id, service: service || null, step: 2
+        a_profile: fromId, b_profile: me.id, service: service || null, step: 2
       }).select().single();
       toast('Accepted — collab open');
       await Promise.all([loadConnections(), loadCollabs()]);
@@ -345,11 +640,12 @@
         await sb.from('collabs').update(patch).eq('id', collab.id);
         const heroShot = shotsFor(me)[0];
         await sb.from('posts').insert({
-          event_id: ev.id, collab_id: collab.id,
+          collab_id: collab.id,
           a_profile: collab.a.id, b_profile: collab.b.id,
           title: (collab.service || 'Collab') + ' — completed',
           image_url: U(heroShot, 600, 600),
           tag: collab.a.category + ' × ' + collab.b.category,
+          location: checkIn ? checkIn.location : null,
           likes: 0
         });
         toast('Collab complete — posted to Feed');
@@ -379,12 +675,12 @@
 
     function updateBadge() {
       const n = collabsList.length + inbox.length;
-      $collabBadge.textContent = n;
-      $collabBadge.style.display = n ? 'flex' : 'none';
-      const on = view === 'collabs' || view === 'collabDetail';
-      $collabBtn.style.background = on ? 'var(--bg-accent)' : 'transparent';
-      $collabBtn.style.color = on ? 'var(--text-accent)' : 'var(--text-primary)';
-      document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === view));
+      $msgBadge.textContent = n;
+      $msgBadge.style.display = n ? 'flex' : 'none';
+      document.querySelectorAll('.nav button').forEach(b => {
+        const tab = b.dataset.tab;
+        b.classList.toggle('active', tab === view || (tab === 'messages' && view === 'collabDetail'));
+      });
     }
 
     function chipsBar() {
@@ -394,6 +690,7 @@
       }).join('') + '</div>';
     }
 
+    // ---------- Feed (global, not location-scoped) ----------
     function feedView() {
       if (!posts.length) {
         $screen.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-secondary)"><i class="ti ti-photo-off" style="font-size:36px" aria-hidden="true"></i><p style="font-size:13px;margin:14px 0 0">No collab work yet. Complete a collab and it lands here.</p></div>';
@@ -414,103 +711,61 @@
           + '<span style="font-size:13px"><i class="ti ti-message-circle" style="font-size:17px;vertical-align:-3px" aria-hidden="true"></i></span>'
           + '<span style="margin-left:auto;font-size:11px;color:var(--text-accent);background:var(--bg-accent);padding:3px 9px;border-radius:999px">Collab</span></div>'
           + '<p style="margin:0;font-size:13px;line-height:1.5"><span style="font-weight:600">' + esc(A.name.split(' ')[0]) + '</span> ' + esc(p.title || '') + '</p>'
+          + (p.location ? '<p style="margin:5px 0 0;font-size:11.5px;color:var(--text-secondary)"><i class="ti ti-map-pin" style="font-size:13px;vertical-align:-2px" aria-hidden="true"></i> ' + esc(displayLocation(p.location)) + '</p>' : '')
           + '</div></div>';
       }).join('');
     }
 
-    function classifiedsView() {
-      const list = (category === 'All' ? attendees : attendees.filter(a => a.category === category)).filter(a => a.wants);
+    // ---------- Discover (merged Connect + Classifieds) ----------
+    function discoverView() {
       const sentIds = new Set(outbox.map(o => o.to_profile));
-      const trade = '<div style="display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:11px;border:0.5px solid var(--border);border-radius:11px">'
-        + '<i class="ti ti-arrows-exchange-2" style="font-size:17px;color:var(--text-accent)" aria-hidden="true"></i>'
-        + '<span style="font-size:12px;color:var(--text-secondary);line-height:1.4">Trade for portfolio — post what you want to build, find someone to build it with.</span></div>';
-
-      const myClassified = me
-        ? '<div class="card" style="margin-bottom:14px">'
-          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'
-          + '<i class="ti ti-pencil" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i>'
-          + '<span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Your classified</span></div>'
-          + '<textarea id="my-classified" rows="2" placeholder="What do you want to build? Post it here." style="margin-bottom:8px">' + esc(me.wants || '') + '</textarea>'
-          + '<button class="btn-mini btn-primary" id="save-classified" style="width:100%;padding:9px">' + (me.wants ? 'Update classified' : 'Post classified') + '</button>'
-          + '</div>'
-        : '';
-
-      const empty = list.length ? '' : '<p style="font-size:13px;color:var(--text-secondary);text-align:center;padding:24px 20px">No classifieds in this category yet.</p>';
-      $screen.innerHTML = chipsBar() + trade + myClassified + list.map(a => {
-        const sent = sentIds.has(a.id);
-        const btn = sent
-          ? '<button class="caret-btn" disabled style="opacity:.4"><i class="ti ti-check" style="font-size:17px" aria-hidden="true"></i></button>'
-          : '<button class="caret-btn" data-respond="' + a.id + '" aria-label="Respond"><i class="ti ti-chevron-right" style="font-size:18px" aria-hidden="true"></i></button>';
-        return '<div class="card">'
-          + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:9px">' + avatar(a, 38)
-          + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:15px">' + esc(a.name) + '</p>'
-          + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">Offers ' + esc(a.category.toLowerCase()) + ' · ' + esc(a.service.toLowerCase()) + '</p></div></div>'
-          + '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px">'
-          + '<i class="ti ti-target-arrow" style="font-size:16px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
-          + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Wants to build</p>'
-          + '<p style="margin:1px 0 0;font-size:13.5px;font-weight:500">' + esc(a.wants) + '</p></div>'
-          + btn + '</div></div>';
-      }).join('') + empty;
-      $screen.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { category = b.dataset.cat; render(); }));
-      $screen.querySelectorAll('[data-respond]').forEach(b => b.addEventListener('click', () => openProposeSheet(b.dataset.respond, 'Respond to their want')));
-      const saveBtn = document.getElementById('save-classified');
-      if (saveBtn) saveBtn.addEventListener('click', async () => {
-        const val = document.getElementById('my-classified').value.trim();
-        await updateClassified(val);
-        render();
-      });
-    }
-
-    function connectView() {
-      const list = category === 'All' ? attendees : attendees.filter(a => a.category === category);
-      const sentIds = new Set(outbox.map(o => o.to_profile));
+      const sorted = [...attendees].sort((a, b) => matchScore(b) - matchScore(a));
+      const list = category === 'All' ? sorted : sorted.filter(a => a.category === category);
 
       const locationBanner = '<div class="banner" style="margin-bottom:14px">'
         + '<i class="ti ti-map-pin" style="font-size:16px" aria-hidden="true"></i>'
-        + '<span>Showing people nearby in <strong>' + esc(ev.neighborhood || ev.name) + '</strong></span></div>';
+        + '<span>People checked in at <strong>' + esc(displayLocation(checkIn.location)) + '</strong></span></div>';
 
-      $screen.innerHTML = locationBanner + chipsBar() + list.map(a => {
+      const seekingCard = '';
+
+      const empty = list.length ? '' : '<p style="font-size:13px;color:var(--text-secondary);text-align:center;padding:24px 20px">No one else checked in here yet.</p>';
+
+      $screen.innerHTML = locationBanner + seekingCard + chipsBar() + list.map(a => {
         const sent = sentIds.has(a.id);
         const btn = sent
           ? '<button class="add-btn added" disabled aria-label="Requested"><i class="ti ti-check" style="font-size:17px" aria-hidden="true"></i></button>'
           : '<button class="add-btn" data-connect="' + a.id + '" aria-label="Connect"><i class="ti ti-plus" style="font-size:18px" aria-hidden="true"></i></button>';
         const check = a.verified ? ' <i class="ti ti-rosette-discount-check" style="font-size:13px;color:var(--text-accent);vertical-align:-1px" aria-hidden="true"></i>' : '';
+        const ml = matchLabel(a);
+
+        let wantsRow = '';
+        if (a.wants) {
+          wantsRow = '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px;margin-top:10px">'
+            + '<i class="ti ti-target-arrow" style="font-size:15px;color:var(--text-accent);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
+            + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Seeking</p>'
+            + '<p style="margin:1px 0 0;font-size:13px;font-weight:500">' + esc(a.wants) + '</p></div></div>';
+        }
+
+        let offerRow = '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 11px;background:var(--surface-1);border-radius:10px;margin-top:' + (a.wants ? '6' : '10') + 'px">'
+          + '<i class="ti ti-briefcase" style="font-size:15px;color:var(--text-success);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>'
+          + '<div style="flex:1"><p style="margin:0;font-size:11px;color:var(--text-secondary)">Offers</p>'
+          + '<p style="margin:1px 0 0;font-size:13px;font-weight:500">' + esc(a.service) + '</p></div></div>';
+
         return '<div class="card">'
           + '<div style="display:flex;gap:11px;align-items:center">' + avatar(a)
-          + '<div style="flex:1;min-width:0"><p class="disp" style="margin:0;font-size:17px">' + esc(a.name) + check + '</p>'
-          + '<p style="margin:2px 0 0;font-size:12px;color:var(--text-secondary)">' + esc(a.category) + ' · ' + esc(a.service) + '</p></div>' + btn + '</div>'
-          + (a.blurb ? '<p style="margin:10px 0 0;font-size:13px;line-height:1.5">' + esc(a.blurb) + '</p>' : '')
+          + '<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><p class="disp" style="margin:0;font-size:17px">' + esc(a.name) + check + '</p>' + ml + '</div>'
+          + '<p style="margin:2px 0 0;font-size:12px;color:var(--text-secondary)">' + esc(a.category) + '</p></div>' + btn + '</div>'
+          + (a.blurb ? '<p style="margin:10px 0 0;font-size:13px;line-height:1.5;color:var(--text-secondary)">' + esc(a.blurb) + '</p>' : '')
+          + wantsRow + offerRow
           + workGrid(a, 3) + '</div>';
-      }).join('');
+      }).join('') + empty;
+
       $screen.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { category = b.dataset.cat; render(); }));
-      $screen.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', () => openProposeSheet(b.dataset.connect, 'Propose your trade')));
+      $screen.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', () => openProposeSheet(b.dataset.connect, 'Propose a trade')));
     }
 
-    function profileView() {
-      if (!me) return;
-      const shots = shotsFor(me);
-      $screen.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px">'
-        + avatar(me, 76)
-        + '<p class="disp" style="margin:10px 0 0;font-size:21px">' + esc(me.name) + (me.verified ? ' <i class="ti ti-rosette-discount-check" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i>' : '') + '</p>'
-        + '<p style="margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)">' + esc(me.category) + ' · ' + esc(me.service) + '</p>'
-        + (me.blurb ? '<p style="margin:9px 0 0;font-size:13px;color:var(--text-primary);max-width:280px;line-height:1.5">' + esc(me.blurb) + '</p>' : '') + '</div>'
-        + '<div style="display:flex;gap:8px;margin:14px 0">'
-        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + collabsList.length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Collabs</p></div>'
-        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + posts.filter(p => p.a && (p.a.id === me.id || (p.b && p.b.id === me.id))).length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Feed posts</p></div></div>'
-        + '<p style="margin:0 0 8px;font-size:13px;font-weight:600" class="disp">Portfolio</p>'
-        + '<div class="grid3">' + shots.map(id => tile(id)).join('') + '</div>'
-        + '<button id="sign-out" class="btn-mini" style="margin-top:16px;width:100%;padding:10px;color:var(--text-secondary)">Sign out</button>';
-      const so = document.getElementById('sign-out');
-      if (so) so.addEventListener('click', () => {
-        localStorage.removeItem('p1_profile_id');
-        location.reload();
-      });
-    }
-
-    function collabsView() {
-      const closeBtn = '<div style="display:flex;align-items:center;margin-bottom:10px">'
-        + '<button id="close-collabs" class="btn-mini" style="border:none;padding:2px 0;color:var(--text-secondary)"><i class="ti ti-x" style="font-size:16px;vertical-align:-2px" aria-hidden="true"></i> Close</button></div>';
-
+    // ---------- Messages (collabs + requests) ----------
+    function messagesView() {
       const requests = inbox.length
         ? '<p class="disp" style="margin:2px 0 8px;font-size:16px;font-weight:700">Requests</p>'
           + inbox.map(r => {
@@ -527,7 +782,7 @@
           }).join('')
         : '';
       const active = collabsList.length
-        ? '<p class="disp" style="margin:12px 0 8px;font-size:16px;font-weight:700">Your collabs</p>'
+        ? '<p class="disp" style="margin:12px 0 8px;font-size:16px;font-weight:700">Collabs</p>'
           + collabsList.map(c => {
             const other = c.a.id === me.id ? c.b : c.a;
             const done = c.step >= 4;
@@ -541,10 +796,9 @@
           }).join('')
         : '';
       const empty = !inbox.length && !collabsList.length
-        ? '<div style="text-align:center;padding:60px 20px;color:var(--text-secondary)"><i class="ti ti-users" style="font-size:32px" aria-hidden="true"></i><p style="font-size:13px;margin:12px 0 0">No collabs or requests yet.</p></div>'
+        ? '<div style="text-align:center;padding:60px 20px;color:var(--text-secondary)"><i class="ti ti-messages" style="font-size:32px" aria-hidden="true"></i><p style="font-size:13px;margin:12px 0 0">No messages or collabs yet. Discover people and send a request.</p></div>'
         : '';
-      $screen.innerHTML = closeBtn + requests + active + empty;
-      document.getElementById('close-collabs').addEventListener('click', () => { view = 'feed'; render(); });
+      $screen.innerHTML = requests + active + empty;
       $screen.querySelectorAll('[data-collab]').forEach(el => el.addEventListener('click', () => { activeCollab = el.dataset.collab; view = 'collabDetail'; render(); }));
       $screen.querySelectorAll('[data-decline]').forEach(el => el.addEventListener('click', async () => { await declineConnect(el.dataset.decline); }));
       $screen.querySelectorAll('[data-accept]').forEach(el => el.addEventListener('click', async () => {
@@ -552,6 +806,44 @@
       }));
     }
 
+    // ---------- Profile ----------
+    function profileView() {
+      if (!me) return;
+      const shots = shotsFor(me);
+      $screen.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px">'
+        + avatar(me, 76)
+        + '<p class="disp" style="margin:10px 0 0;font-size:21px">' + esc(me.name) + (me.verified ? ' <i class="ti ti-rosette-discount-check" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i>' : '') + '</p>'
+        + '<p style="margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)">' + esc(me.category) + ' · ' + esc(me.service) + '</p>'
+        + (me.blurb ? '<p style="margin:9px 0 0;font-size:13px;color:var(--text-primary);max-width:280px;line-height:1.5">' + esc(me.blurb) + '</p>' : '') + '</div>'
+        + '<div style="display:flex;gap:8px;margin:14px 0">'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + collabsList.length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Collabs</p></div>'
+        + '<div style="flex:1;background:var(--surface-1);border-radius:10px;padding:10px;text-align:center"><p style="margin:0;font-size:19px;font-weight:600">' + posts.filter(p => p.a && (p.a.id === me.id || (p.b && p.b.id === me.id))).length + '</p><p style="margin:0;font-size:11px;color:var(--text-secondary)">Feed posts</p></div></div>'
+        + '<div class="card" style="margin-bottom:14px">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'
+          + '<i class="ti ti-target-arrow" style="font-size:15px;color:var(--text-accent)" aria-hidden="true"></i>'
+          + '<span style="font-size:12px;font-weight:600;color:var(--text-secondary)">What you\'re seeking</span></div>'
+          + '<textarea id="my-seeking" rows="2" placeholder="What do you want to build? e.g. Brand identity for my app" style="margin-bottom:8px">' + esc(me.wants || '') + '</textarea>'
+          + '<button class="btn-mini btn-primary" id="save-seeking" style="width:100%;padding:9px">' + (me.wants ? 'Update' : 'Post what you\'re seeking') + '</button>'
+        + '</div>'
+        + '<p style="margin:0 0 8px;font-size:13px;font-weight:600" class="disp">Portfolio</p>'
+        + '<div class="grid3">' + shots.map(id => tile(id)).join('') + '</div>'
+        + '<button id="sign-out" class="btn-mini" style="margin-top:16px;width:100%;padding:10px;color:var(--text-secondary)">Sign out</button>';
+      const saveBtn = document.getElementById('save-seeking');
+      if (saveBtn) saveBtn.addEventListener('click', async () => {
+        const val = document.getElementById('my-seeking').value.trim();
+        await updateProfile({ wants: val || null });
+        toast(val ? 'Updated' : 'Cleared');
+        render();
+      });
+      const so = document.getElementById('sign-out');
+      if (so) so.addEventListener('click', () => {
+        localStorage.removeItem('p1_profile_id');
+        localStorage.removeItem('p1_checkin_id');
+        location.reload();
+      });
+    }
+
+    // ---------- Collab detail ----------
     function tracker(step) {
       let cells = '';
       for (let i = 1; i <= 4; i++) {
@@ -569,7 +861,7 @@
 
     async function detailView() {
       const c = collabsList.find(x => x.id === activeCollab);
-      if (!c) { view = 'collabs'; render(); return; }
+      if (!c) { view = 'messages'; render(); return; }
       const other = c.a.id === me.id ? c.b : c.a;
       const { data: msgs } = await sb.from('messages').select('*').eq('collab_id', c.id).order('created_at');
       const bubbles = (msgs || []).map(m => {
@@ -591,7 +883,7 @@
         action = '<div style="text-align:center;font-size:12px;color:var(--text-success);padding:9px"><i class="ti ti-confetti" style="font-size:14px;vertical-align:-2px" aria-hidden="true"></i> Collab complete — posted to Feed</div>';
       }
       $screen.innerHTML =
-        '<button id="back" class="btn-mini" style="border:none;padding:2px 0 10px;color:var(--text-secondary)"><i class="ti ti-chevron-left" style="font-size:15px;vertical-align:-2px" aria-hidden="true"></i> Collabs</button>'
+        '<button id="back" class="btn-mini" style="border:none;padding:2px 0 10px;color:var(--text-secondary)"><i class="ti ti-chevron-left" style="font-size:15px;vertical-align:-2px" aria-hidden="true"></i> Messages</button>'
         + '<div style="display:flex;gap:11px;align-items:center;margin-bottom:11px">' + avatar(other)
         + '<div><p class="disp" style="margin:0;font-size:19px">' + esc(other.name) + '</p><p style="margin:0;font-size:12px;color:var(--text-secondary)">' + esc(c.service || 'Collab') + '</p></div></div>'
         + '<div class="card" style="padding:11px 8px">' + tracker(c.step) + '</div>'
@@ -599,7 +891,7 @@
         + '<p style="font-size:12px;color:var(--text-secondary);margin:0 0 8px">Messages</p>'
         + '<div id="bubbles" style="background:var(--surface-1);border-radius:13px;padding:10px;margin-bottom:8px;min-height:60px">' + bubbles + '</div>'
         + '<div style="display:flex;gap:6px"><input id="msg" placeholder="Message ' + esc(other.name.split(' ')[0]) + '" style="flex:1" /><button id="send" class="btn-mini btn-primary"><i class="ti ti-send" style="font-size:15px" aria-hidden="true"></i></button></div>';
-      document.getElementById('back').addEventListener('click', () => { closeMessagesSub(); view = 'collabs'; activeCollab = null; render(); });
+      document.getElementById('back').addEventListener('click', () => { closeMessagesSub(); view = 'messages'; activeCollab = null; render(); });
       const adv = document.getElementById('advance');
       if (adv) adv.addEventListener('click', async () => { await advanceStep(c); await loadCollabs(); render(); });
       const md = document.getElementById('markdone');
@@ -629,7 +921,7 @@
     }
     function closeMessagesSub() { if (activeMessagesSub) { sb.removeChannel(activeMessagesSub); activeMessagesSub = null; } }
 
-    // ---------- sheets (onboarding + propose) ----------
+    // ---------- sheets ----------
     function openSheet(html, opts) {
       opts = opts || {};
       $modal.style.display = 'block';
@@ -640,32 +932,291 @@
     function closeSheet() { $modal.style.display = 'none'; $modal.innerHTML = ''; }
 
     function openOnboardingSheet() {
+      const CAT_ICONS = { Design: 'ti-palette', Photography: 'ti-camera', Writing: 'ti-pencil', Development: 'ti-code' };
+      const CAT_SUBS = { Design: 'Brand, UI, illustration', Photography: 'Portrait, product, event', Writing: 'Copy, content, editorial', Development: 'Web, mobile, backend' };
+      const TOTAL_STEPS = 4;
+      let step = 0;
+      const formData = { name: '', category: '', service: '', wants: '', blurb: '' };
+
+      const el = document.createElement('div');
+      el.className = 'onboard';
+      el.innerHTML =
+        '<div class="onboard-progress" id="ob-progress">'
+          + Array.from({ length: TOTAL_STEPS }, () => '<div class="onboard-bar"></div>').join('')
+        + '</div>'
+        + '<div class="onboard-slides" id="ob-slides">'
+          // Step 0: Welcome
+          + '<div class="onboard-slide active" data-step="0">'
+            + '<div class="onboard-welcome">'
+              + '<div class="onboard-welcome-icon"><i class="ti ti-arrows-exchange" aria-hidden="true"></i></div>'
+              + '<p class="disp onboard-title" style="font-size:28px">Connect &amp; Collab</p>'
+              + '<p class="onboard-sub" style="margin-bottom:12px">Trade skills, build portfolio, find your people.</p>'
+              + '<p style="font-size:13px;color:var(--text-muted);line-height:1.6;max-width:280px">Bring what you offer, post what you need. Match with creatives and entrepreneurs nearby.</p>'
+            + '</div>'
+          + '</div>'
+          // Step 1: Name
+          + '<div class="onboard-slide" data-step="1">'
+            + '<p class="onboard-step-label">Step 1 of ' + TOTAL_STEPS + '</p>'
+            + '<p class="disp onboard-title">What\'s your name?</p>'
+            + '<p class="onboard-sub">This is how others will see you.</p>'
+            + '<input class="onboard-input" id="ob-name" placeholder="Your full name" autocomplete="name" />'
+          + '</div>'
+          // Step 2: Category
+          + '<div class="onboard-slide" data-step="2">'
+            + '<p class="onboard-step-label">Step 2 of ' + TOTAL_STEPS + '</p>'
+            + '<p class="disp onboard-title">What do you do?</p>'
+            + '<p class="onboard-sub">Pick the category that fits best.</p>'
+            + '<div class="onboard-cats" id="ob-cats">'
+              + CATS.filter(c => c !== 'All').map(c =>
+                '<button class="onboard-cat" data-cat="' + c + '">'
+                  + '<div class="onboard-cat-icon"><i class="ti ' + CAT_ICONS[c] + '" aria-hidden="true"></i></div>'
+                  + '<div><div style="font-weight:600">' + c + '</div>'
+                  + '<div style="font-size:11.5px;color:var(--text-secondary);font-weight:400;margin-top:1px">' + CAT_SUBS[c] + '</div></div>'
+                + '</button>'
+              ).join('')
+            + '</div>'
+          + '</div>'
+          // Step 3: Offer + Seeking
+          + '<div class="onboard-slide" data-step="3">'
+            + '<p class="onboard-step-label">Step 3 of ' + TOTAL_STEPS + '</p>'
+            + '<p class="disp onboard-title">Your trade</p>'
+            + '<p class="onboard-sub">What do you bring, and what are you looking for?</p>'
+            + '<div class="onboard-field">'
+              + '<label class="onboard-field-label">What you offer</label>'
+              + '<div class="chip-input-wrap" id="ob-service-wrap">'
+                + '<input id="ob-service-input" placeholder="Type and press comma or enter" />'
+              + '</div>'
+              + '<p class="chip-hint">Separate skills with commas</p>'
+            + '</div>'
+            + '<div class="onboard-field">'
+              + '<label class="onboard-field-label">What you\'re seeking</label>'
+              + '<input class="onboard-input" id="ob-wants" placeholder="e.g. Brand identity for my app" />'
+            + '</div>'
+            + '<div class="onboard-field">'
+              + '<label class="onboard-field-label">Past work <span style="font-weight:400;color:var(--text-muted)">(optional, up to 3)</span></label>'
+              + '<div class="portfolio-slots" id="ob-portfolio">'
+                + '<div class="portfolio-slot" data-slot="0"><div class="slot-icon"><i class="ti ti-plus" aria-hidden="true"></i></div><span class="slot-label">Add</span></div>'
+                + '<div class="portfolio-slot" data-slot="1"><div class="slot-icon"><i class="ti ti-plus" aria-hidden="true"></i></div><span class="slot-label">Add</span></div>'
+                + '<div class="portfolio-slot" data-slot="2"><div class="slot-icon"><i class="ti ti-plus" aria-hidden="true"></i></div><span class="slot-label">Add</span></div>'
+              + '</div>'
+              + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px" id="ob-descs">'
+                + '<div class="portfolio-desc"><input placeholder="Describe" disabled data-desc="0" /></div>'
+                + '<div class="portfolio-desc"><input placeholder="Describe" disabled data-desc="1" /></div>'
+                + '<div class="portfolio-desc"><input placeholder="Describe" disabled data-desc="2" /></div>'
+              + '</div>'
+              + '<input type="file" id="ob-file-input" accept="image/*" style="display:none" />'
+            + '</div>'
+          + '</div>'
+        + '</div>'
+        + '<div class="onboard-footer" id="ob-footer">'
+          + '<button class="onboard-btn onboard-btn-primary" id="ob-next">Get started</button>'
+        + '</div>';
+
+      document.getElementById('phone').appendChild(el);
+
+      const slides = el.querySelectorAll('.onboard-slide');
+      const bars = el.querySelectorAll('.onboard-bar');
+      const footer = document.getElementById('ob-footer');
+
+      function updateUI() {
+        slides.forEach(s => {
+          const si = parseInt(s.dataset.step);
+          s.classList.remove('active', 'exit-left');
+          if (si === step) s.classList.add('active');
+          else if (si < step) s.classList.add('exit-left');
+        });
+        bars.forEach((b, i) => b.classList.toggle('filled', i < step));
+
+        let footerHTML = '';
+        if (step > 0) {
+          footerHTML += '<button class="onboard-btn onboard-btn-back" id="ob-back"><i class="ti ti-chevron-left" style="font-size:18px" aria-hidden="true"></i></button>';
+        }
+        if (step === 0) {
+          footerHTML += '<button class="onboard-btn onboard-btn-primary" id="ob-next">Get started</button>';
+        } else if (step < TOTAL_STEPS - 1) {
+          footerHTML += '<button class="onboard-btn onboard-btn-primary" id="ob-next">Continue</button>';
+        } else {
+          footerHTML += '<button class="onboard-btn onboard-btn-primary" id="ob-next">Create profile</button>';
+        }
+        footer.innerHTML = footerHTML;
+
+        const back = document.getElementById('ob-back');
+        if (back) back.addEventListener('click', () => { step--; updateUI(); });
+
+        document.getElementById('ob-next').addEventListener('click', handleNext);
+
+        // Auto-focus inputs
+        if (step === 1) setTimeout(() => document.getElementById('ob-name')?.focus(), 350);
+        if (step === 3) setTimeout(() => document.getElementById('ob-service')?.focus(), 350);
+      }
+
+      let advancing = false;
+      async function handleNext() {
+        if (advancing) return;
+        advancing = true;
+        try { await _handleNext(); } catch(e) { console.error(e); } finally { setTimeout(() => { advancing = false; }, 0); }
+      }
+      async function _handleNext() {
+        if (step === 0) {
+          step = 1; updateUI(); return;
+        }
+        if (step === 1) {
+          const name = document.getElementById('ob-name').value.trim();
+          if (!name) { toast('Enter your name', 'err'); return; }
+          formData.name = name;
+          step = 2; updateUI(); return;
+        }
+        if (step === 2) {
+          if (!formData.category) { toast('Pick a category', 'err'); return; }
+          step = 3; updateUI(); return;
+        }
+        if (step === 3) {
+          const trailing = document.getElementById('ob-service-input').value.replace(/,/g, '').trim();
+          if (trailing && !serviceTags.includes(trailing)) serviceTags.push(trailing);
+          if (!serviceTags.length) { toast('Add at least one skill', 'err'); return; }
+          formData.service = serviceTags.join(', ');
+          formData.wants = document.getElementById('ob-wants').value.trim();
+          const descs = [0,1,2].map(i => {
+            const d = document.querySelector('[data-desc="' + i + '"]');
+            return d ? d.value.trim() : '';
+          }).filter(Boolean);
+          formData.blurb = descs.join(' · ');
+          formData.portfolio = portfolioImages.filter(Boolean);
+
+          const btn = document.getElementById('ob-next');
+          btn.disabled = true;
+          btn.textContent = 'Creating…';
+          try {
+            await createProfile(formData);
+            if (formData.portfolio && formData.portfolio.length) {
+              localStorage.setItem('p1_portfolio_' + me.id, JSON.stringify(formData.portfolio));
+            }
+            el.remove();
+            render();
+          } catch (e) {
+            btn.disabled = false;
+            btn.textContent = 'Create profile';
+            toast((e.message || 'Error').slice(0, 40), 'err');
+          }
+        }
+      }
+
+      // Category selection
+      el.querySelector('#ob-cats').addEventListener('click', (e) => {
+        const cat = e.target.closest('.onboard-cat');
+        if (!cat) return;
+        el.querySelectorAll('.onboard-cat').forEach(c => c.classList.remove('selected'));
+        cat.classList.add('selected');
+        formData.category = cat.dataset.cat;
+      });
+
+      // Chip/tag input for services
+      const serviceTags = [];
+      function renderTags() {
+        const wrap = document.getElementById('ob-service-wrap');
+        if (!wrap) return;
+        wrap.querySelectorAll('.tag').forEach(t => t.remove());
+        const input = wrap.querySelector('input');
+        serviceTags.forEach((tag, i) => {
+          const el = document.createElement('span');
+          el.className = 'tag';
+          el.innerHTML = esc(tag) + '<button class="tag-x" data-tag-idx="' + i + '">&times;</button>';
+          wrap.insertBefore(el, input);
+        });
+        input.placeholder = serviceTags.length ? 'Add more' : 'Type and press comma or enter';
+      }
+      el.addEventListener('click', (e) => {
+        const x = e.target.closest('.tag-x');
+        if (x) { serviceTags.splice(parseInt(x.dataset.tagIdx), 1); renderTags(); }
+        const wrap = e.target.closest('.chip-input-wrap');
+        if (wrap) wrap.querySelector('input')?.focus();
+      });
+      function addServiceTag(inp) {
+        const parts = inp.value.split(',').map(s => s.trim()).filter(Boolean);
+        parts.forEach(val => {
+          if (!serviceTags.includes(val)) serviceTags.push(val);
+        });
+        inp.value = '';
+        renderTags();
+      }
+      el.addEventListener('input', (e) => {
+        const inp = document.getElementById('ob-service-input');
+        if (e.target === inp && inp.value.includes(',')) {
+          addServiceTag(inp);
+        }
+      });
+      el.addEventListener('keydown', (e) => {
+        const inp = document.getElementById('ob-service-input');
+        if (e.target === inp) {
+          if (e.key === ',' || e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            addServiceTag(inp);
+          }
+          if (e.key === 'Backspace' && !inp.value && serviceTags.length) {
+            serviceTags.pop(); renderTags();
+          }
+          return;
+        }
+        if (e.target.closest('.portfolio-desc')) return;
+        if (e.key === 'Enter') { e.preventDefault(); handleNext(); }
+      });
+
+      // Portfolio image uploads
+      const portfolioImages = [null, null, null];
+      let activeSlotIdx = 0;
+      el.querySelector('#ob-portfolio').addEventListener('click', (e) => {
+        const slot = e.target.closest('.portfolio-slot');
+        if (!slot) return;
+        const idx = parseInt(slot.dataset.slot);
+        const removeBtn = e.target.closest('.slot-remove');
+        if (removeBtn) {
+          portfolioImages[idx] = null;
+          slot.classList.remove('has-image');
+          slot.innerHTML = '<div class="slot-icon"><i class="ti ti-plus" aria-hidden="true"></i></div><span class="slot-label">Add</span>';
+          const desc = document.querySelector('[data-desc="' + idx + '"]');
+          if (desc) { desc.value = ''; desc.disabled = true; }
+          return;
+        }
+        activeSlotIdx = idx;
+        document.getElementById('ob-file-input').click();
+      });
+      el.querySelector('#ob-file-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const idx = activeSlotIdx;
+          portfolioImages[idx] = ev.target.result;
+          const slot = el.querySelector('[data-slot="' + idx + '"]');
+          slot.classList.add('has-image');
+          slot.innerHTML = '<img src="' + ev.target.result + '" alt="" /><button class="slot-remove"><i class="ti ti-x" style="font-size:12px" aria-hidden="true"></i></button>';
+          const desc = document.querySelector('[data-desc="' + idx + '"]');
+          if (desc) desc.disabled = false;
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+      });
+
+      updateUI();
+    }
+
+    function openCheckInSheet() {
       openSheet(
-        '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Welcome to Project One</p>'
-        + '<p style="margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)">Trade for portfolio — bring what you offer, find people nearby to build with.</p>'
-        + '<div class="field"><label>Full name</label><input id="f-name" placeholder="Your name"></div>'
-        + '<div class="field"><label>Category</label><select id="f-category">'
-          + CATS.filter(c => c !== 'All').map(c => '<option>' + c + '</option>').join('')
-        + '</select></div>'
-        + '<div class="field"><label>What you offer (one line)</label><input id="f-service" placeholder="e.g. Portrait photography"></div>'
-        + '<div class="field"><label>Short bio</label><textarea id="f-blurb" rows="2" placeholder="One-line pitch, optional"></textarea></div>'
-        + '<button id="f-submit" class="btn-mini btn-primary" style="width:100%;padding:11px;margin-top:6px">Get started</button>',
+        '<p class="disp" style="margin:0 0 4px;font-size:20px;font-weight:700">Where are you?</p>'
+        + '<p style="margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)">Check in to see who else is here. Lasts 12 hours.</p>'
+        + '<div class="field"><label>Location</label><input id="f-location" placeholder="e.g. Blue Bottle on Valencia"></div>'
+        + '<button id="f-checkin" class="btn-mini btn-primary" style="width:100%;padding:11px;margin-top:6px">Check in</button>',
         { center: true, dismissable: false }
       );
-      document.getElementById('f-submit').addEventListener('click', async () => {
-        const form = {
-          name: document.getElementById('f-name').value,
-          category: document.getElementById('f-category').value,
-          service: document.getElementById('f-service').value,
-          blurb: document.getElementById('f-blurb').value,
-          wants: ''
-        };
-        if (!form.name.trim() || !form.service.trim()) { toast('Name and service are required', 'err'); return; }
+      document.getElementById('f-checkin').addEventListener('click', async () => {
+        const loc = document.getElementById('f-location').value.trim();
+        if (!loc) { toast('Enter a location', 'err'); return; }
         try {
-          await createProfile(form);
+          await performCheckIn(loc);
           closeSheet();
           await reloadAll();
-          view = 'feed';
+          view = 'discover';
           render();
         } catch (e) {
           toast((e.message || 'Error').slice(0, 40), 'err');
@@ -681,8 +1232,8 @@
         + '<div style="display:flex;gap:10px;align-items:center;margin:6px 0 12px">' + avatar(target, 36)
         + '<div><p class="disp" style="margin:0;font-size:14px">' + esc(target.name) + '</p>'
         + '<p style="margin:0;font-size:11.5px;color:var(--text-secondary)">' + esc(target.category) + ' · ' + esc(target.service) + '</p></div></div>'
-        + (target.wants ? '<div style="background:var(--surface-1);border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.5;margin-bottom:12px"><span style="color:var(--text-secondary);font-size:11px;display:block">Their want</span>' + esc(target.wants) + '</div>' : '')
-        + '<div class="field"><label>The trade you propose</label><textarea id="prop" rows="4" placeholder="What you\'ll make for them + what you want back."></textarea></div>'
+        + (target.wants ? '<div style="background:var(--surface-1);border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.5;margin-bottom:12px"><span style="color:var(--text-secondary);font-size:11px;display:block">They\'re seeking</span>' + esc(target.wants) + '</div>' : '')
+        + '<div class="field"><label>Your proposal</label><textarea id="prop" rows="4" placeholder="What you\'ll make for them + what you want back."></textarea></div>'
         + '<div style="display:flex;gap:6px"><button class="btn-mini" id="prop-cancel" style="flex:1">Cancel</button><button class="btn-mini btn-primary" id="prop-send" style="flex:2">Send request</button></div>'
       );
       document.getElementById('prop-cancel').addEventListener('click', closeSheet);
@@ -698,26 +1249,38 @@
     // ---------- master render ----------
     function render() {
       updateBadge();
-      if (!me) { openOnboardingSheet(); return; }
+      if (!me) {
+        if (!document.querySelector('.onboard')) openOnboardingSheet();
+        return;
+      }
+      if (!checkIn || isExpired(checkIn)) {
+        checkIn = null;
+        localStorage.removeItem('p1_checkin_id');
+        updateHeader();
+        openCheckInSheet();
+        return;
+      }
       if (view === 'feed') return feedView();
-      if (view === 'classifieds') return classifiedsView();
-      if (view === 'connect') return connectView();
+      if (view === 'discover') return discoverView();
+      if (view === 'messages') return messagesView();
       if (view === 'profile') return profileView();
-      if (view === 'collabs') return collabsView();
       if (view === 'collabDetail') return detailView();
     }
 
     // ---------- global subscriptions ----------
     function openGlobalSubs() {
-      sb.channel('conn-' + (me ? me.id : 'anon'))
+      sb.channel('global-' + (me ? me.id : 'anon'))
         .on('postgres_changes', { event: '*', schema: 'public', table: 'connections' }, async () => {
-          await loadConnections(); if (view === 'collabs') render(); else updateBadge();
+          await loadConnections(); if (view === 'messages') render(); else updateBadge();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'collabs' }, async () => {
-          await loadCollabs(); if (view === 'collabs' || view === 'collabDetail') render(); else updateBadge();
+          await loadCollabs(); if (view === 'messages' || view === 'collabDetail') render(); else updateBadge();
         })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, async () => {
           await loadPosts(); if (view === 'feed') render();
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'check_ins' }, async () => {
+          await loadAttendees(); if (view === 'discover') render();
         })
         .subscribe();
     }
@@ -727,12 +1290,13 @@
       closeMessagesSub();
       view = b.dataset.tab; activeCollab = null; $screen.scrollTop = 0; render();
     }));
-    $collabBtn.addEventListener('click', () => { closeMessagesSub(); view = 'collabs'; activeCollab = null; $screen.scrollTop = 0; render(); });
+    $locationName.style.cursor = 'pointer';
+    $locationName.addEventListener('click', () => { if (me) openCheckInSheet(); });
 
     (async () => {
       try {
-        await loadEvent();
         await loadMe();
+        await loadActiveCheckIn();
         await reloadAll();
         openGlobalSubs();
         render();

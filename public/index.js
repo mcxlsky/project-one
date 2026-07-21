@@ -16,6 +16,9 @@ let originalWord = '';
 let activeTransformedWord = '';
 let searchCounter = 0;
 let currentContextChip = '';
+let currentDescriptionChip = '';
+// Which TLD is showing in the single domain row's extension picker
+let selectedTld = 'com';
 
 let results = {
   domains: {},
@@ -39,8 +42,8 @@ const statusSummary = document.getElementById('status-summary');
 const exportCsvBtn = document.getElementById('export-csv-btn');
 const copyReportBtn = document.getElementById('copy-report-btn');
 
-// Best Options Elements
-const bestOptionsList = document.getElementById('best-options-list');
+// Score badge shown next to the input once a name is being tested
+const inputScoreBadge = document.getElementById('input-score-badge');
 
 // Brand Pack Modal Elements
 const grabPackBtn = document.getElementById('grab-pack-btn');
@@ -121,11 +124,7 @@ searchForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const rawInput = brandInput.value.trim();
   if (rawInput || currentContextChip) {
-    let finalQuery = rawInput;
-    if (currentContextChip) {
-      finalQuery = rawInput ? `${currentContextChip} ${rawInput}` : currentContextChip;
-    }
-    performBrandCheck(finalQuery);
+    performBrandCheck(rawInput);
   } else {
     searchForm.reportValidity();
   }
@@ -146,275 +145,81 @@ brandInput.addEventListener('keydown', (e) => {
     e.preventDefault();
     const rawInput = brandInput.value.trim();
     if (rawInput || currentContextChip) {
-      // If there's a chip and they entered text, combine them
-      let finalQuery = rawInput;
-      if (currentContextChip) {
-        finalQuery = rawInput ? `${currentContextChip} ${rawInput}` : currentContextChip;
-      }
-      performBrandCheck(finalQuery);
+      performBrandCheck(rawInput);
     } else {
       searchForm.reportValidity();
     }
   }
 });
 
-// Top candidates state tracker
-let currentCandidates = [];
+// How closely a candidate resembles the name the user actually typed, 0-100.
+// Based on longest common subsequence so prefix/suffix blends and vowel-drops
+// (e.g. "ftrschl" from "afterschool") still score highly, not just exact substrings.
+function computeRelevanceScore(candidateText, baseName) {
+  const clean = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const a = clean(candidateText);
+  const b = clean(baseName);
+  if (!b) return 100;
+  if (!a) return 0;
 
-// Dynamic option cards renderer
-function renderCandidateCards(candidates) {
-  bestOptionsList.innerHTML = '';
-  candidates.forEach(c => {
-    const card = document.createElement('div');
-    card.className = `option-card ${c.text === activeTransformedWord ? 'active' : ''}`;
-    card.id = `candidate-card-${c.text}`;
-    
-    updateCardContent(card, c);
-    
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.option-card').forEach(el => el.classList.remove('active'));
-      card.classList.add('active');
-      
-      activeTransformedWord = c.text;
-      performDetailedBrandCheck(c.text);
-    });
-    
-    bestOptionsList.appendChild(card);
-  });
-}
-
-function updateCardContent(cardElement, c) {
-  const domainStatus = c.status?.domain || 'checking';
-  const igStatus = c.status?.instagram || 'checking';
-  const xStatus = c.status?.x || 'checking';
-  const bestTld = c.bestTld || 'com';
-  
-  const getIndicatorHtml = (status, label) => {
-    if (status === 'available') {
-      return `<span class="option-indicator available"><i class="fa-solid fa-check"></i> ${label}</span>`;
-    } else if (status === 'taken') {
-      return `<span class="option-indicator taken"><i class="fa-solid fa-ban"></i> ${label}</span>`;
-    } else if (status === 'checking') {
-      return `<span class="option-indicator checking"><i class="fa-solid fa-circle-notch fa-spin"></i> ${label}</span>`;
-    } else {
-      return `<span class="option-indicator taken"><i class="fa-solid fa-circle-question"></i> ${label}</span>`;
+  const m = a.length;
+  const n = b.length;
+  const dp = new Array(n + 1).fill(0);
+  for (let i = 1; i <= m; i++) {
+    let prev = 0;
+    for (let j = 1; j <= n; j++) {
+      const temp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1] ? prev + 1 : Math.max(dp[j], dp[j - 1]);
+      prev = temp;
     }
-  };
-
-  const domainHtml = getIndicatorHtml(domainStatus, `.${bestTld}`);
-  const igHtml = getIndicatorHtml(igStatus, 'IG');
-  const xHtml = getIndicatorHtml(xStatus, 'X');
-  
-  let scoreHtml = '';
-  if (c.isResolved) {
-    scoreHtml = `${c.finalScore}% Available`;
-  } else {
-    scoreHtml = `<i class="fa-solid fa-circle-notch fa-spin"></i> Checking`;
   }
-
-  cardElement.innerHTML = `
-    <div class="option-card-header">
-      <span class="option-card-name">${c.text}</span>
-      <span class="option-card-score">${scoreHtml}</span>
-    </div>
-    <div class="option-card-indicators">
-      ${domainHtml}
-      ${igHtml}
-      ${xHtml}
-    </div>
-  `;
+  return Math.round((dp[n] / n) * 100);
 }
 
-function updateCandidateCardUI(c) {
-  const card = document.getElementById(`candidate-card-${c.text}`);
-  if (card) {
-    updateCardContent(card, c);
+// Blend of availability (best open TLD + IG + X) and relevance-to-typed-name for
+// whichever name is currently active, shown as a badge next to the input.
+function updateInputScoreBadge() {
+  if (!inputScoreBadge) return;
+  if (!(currentContextChip && currentDescriptionChip) || !activeTransformedWord) {
+    inputScoreBadge.style.display = 'none';
+    return;
   }
-}
 
-function recalculateCandidateScore(c) {
+  const domainEntries = Object.entries(results.domains);
+  if (domainEntries.length === 0) {
+    inputScoreBadge.style.display = 'none';
+    return;
+  }
+
+  const socialEntries = Object.values(results.socials);
+  const stillChecking = domainEntries.some(([, d]) => d.status === 'checking')
+    || socialEntries.some(s => s.status === 'checking');
+
+  if (stillChecking) {
+    inputScoreBadge.textContent = 'Checking…';
+    inputScoreBadge.className = 'input-score-badge checking';
+    inputScoreBadge.style.display = 'inline-flex';
+    return;
+  }
+
+  const weights = { com: 50, co: 45, io: 40, ai: 35, app: 30, net: 25, org: 20 };
+  const priorityTlds = ['com', 'co', 'io', 'ai', 'app', 'net', 'org'];
   let domainScore = 0;
-  if (c.status.domain === 'available') {
-    const weights = { com: 50, co: 45, io: 40, ai: 35, app: 30, net: 25, org: 20 };
-    domainScore = weights[c.bestTld] || 0;
-  }
-  let igScore = (c.status.instagram === 'available') ? 25 : 0;
-  let xScore = (c.status.x === 'available') ? 25 : 0;
-  c.finalScore = domainScore + igScore + xScore;
-  updateCandidateCardUI(c);
-}
-
-// Render generic skeleton cards during candidate generation checks
-function renderSkeletons() {
-  bestOptionsList.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
-    const card = document.createElement('div');
-    card.className = 'option-card skeleton';
-    card.innerHTML = `
-      <div class="option-card-header">
-        <span class="option-card-name skeleton-text" style="width: 80px; height: 16px; background: #e8e8e8; border-radius: 4px; display: inline-block;"></span>
-        <span class="option-card-score skeleton-text" style="width: 60px; height: 16px; background: #eef2ff; border-radius: 4px; display: inline-block;"></span>
-      </div>
-      <div class="option-card-indicators" style="display: flex; gap: 0.4rem; margin-top: 0.25rem;">
-        <span class="option-indicator skeleton-indicator" style="width: 45px; height: 16px; background: #f3f4f6; border-radius: 4px; display: inline-block;"></span>
-        <span class="option-indicator skeleton-indicator" style="width: 35px; height: 16px; background: #f3f4f6; border-radius: 4px; display: inline-block;"></span>
-        <span class="option-indicator skeleton-indicator" style="width: 35px; height: 16px; background: #f3f4f6; border-radius: 4px; display: inline-block;"></span>
-      </div>
-      <div class="option-card-footer" style="display: flex; justify-content: space-between; margin-top: auto;">
-        <span class="skeleton-text" style="width: 50px; height: 12px; background: #f3f4f6; border-radius: 4px; display: inline-block;"></span>
-      </div>
-    `;
-    bestOptionsList.appendChild(card);
-  }
-}
-
-async function runBackgroundScoring(candidates, searchId) {
-  const promises = candidates.map(async (c) => {
-    c.status = { domain: 'checking', instagram: 'checking', x: 'checking' };
-    c.bestTld = 'com';
-    c.isResolved = false;
-    let igAvailable = false;
-    let xAvailable = false;
-
-    const pIg = fetch(`${API_BASE}/api/check-social?platform=instagram&handle=${c.text}`)
-      .then(res => res.json())
-      .then(data => {
-        if (searchId !== searchCounter) return;
-        c.status.instagram = data.status;
-        if (data.status === 'available') igAvailable = true;
-      })
-      .catch(() => {
-        if (searchId !== searchCounter) return;
-        c.status.instagram = 'unknown';
-      });
-
-    const pX = fetch(`${API_BASE}/api/check-social?platform=x&handle=${c.text}`)
-      .then(res => res.json())
-      .then(data => {
-        if (searchId !== searchCounter) return;
-        c.status.x = data.status;
-        if (data.status === 'available') xAvailable = true;
-      })
-      .catch(() => {
-        if (searchId !== searchCounter) return;
-        c.status.x = 'unknown';
-      });
-
-    // Check domains in parallel in priority order
-    const checkDomainPriority = async () => {
-      const priorityTlds = ['com', 'co', 'io', 'ai', 'app', 'net', 'org'];
-      const tldPromises = priorityTlds.map(async (tld) => {
-        try {
-          const res = await fetch(`${API_BASE}/api/check-domain?domain=${c.text}.${tld}`);
-          const data = await res.json();
-          return { tld, status: data.status };
-        } catch (e) {
-          return { tld, status: 'taken' };
-        }
-      });
-      
-      const tldResults = await Promise.all(tldPromises);
-      if (searchId !== searchCounter) return;
-      
-      for (const tld of priorityTlds) {
-        const r = tldResults.find(x => x.tld === tld);
-        if (r && r.status === 'available') {
-          c.bestTld = tld;
-          c.status.domain = 'available';
-          return;
-        }
-      }
-      c.bestTld = 'com';
-      c.status.domain = 'taken';
-    };
-
-    await Promise.all([pIg, pX, checkDomainPriority()]);
-
-    if (searchId !== searchCounter) return;
-
-    // Compute availability score weights (Gold standard com=50%, co=45%, io=40%, ai=35%, app=30%, net=25%, org=20%)
-    let domainScore = 0;
-    if (c.status.domain === 'available') {
-      const weights = { com: 50, co: 45, io: 40, ai: 35, app: 30, net: 25, org: 20 };
-      domainScore = weights[c.bestTld] || 0;
+  for (const tld of priorityTlds) {
+    if (results.domains[tld] && results.domains[tld].status === 'available') {
+      domainScore = weights[tld];
+      break;
     }
-
-    let igScore = igAvailable ? 25 : 0;
-    let xScore = xAvailable ? 25 : 0;
-
-    c.finalScore = domainScore + igScore + xScore;
-    c.isResolved = true;
-    updateCandidateCardUI(c);
-  });
-
-  await Promise.all(promises);
-
-  if (searchId !== searchCounter) return;
-
-  // Re-sort the currentCandidates array based on a blended score
-  // combining actual availability (finalScore) and name quality (score)
-  currentCandidates.sort((a, b) => {
-    const availA = a.isResolved ? a.finalScore : 0;
-    const availB = b.isResolved ? b.finalScore : 0;
-    const qualA = a.score || 0;
-    const qualB = b.score || 0;
-    
-    // Give availability a slight multiplier so a great available name beats an amazing unavailable name,
-    // but a truly exceptional name with a .co will beat a mediocre name with a .com
-    const blendedA = (availA * 1.2) + qualA;
-    const blendedB = (availB * 1.2) + qualB;
-    
-    if (blendedB !== blendedA) {
-      return blendedB - blendedA;
-    }
-    return qualB - qualA;
-  });
-
-  let topCandidates = [];
-  const isBrandSearch = originalWord.trim().split(/\s+/).length <= 3;
-  if (isBrandSearch) {
-    const exactMatchText = originalWord.toLowerCase().replace(/[^a-z0-9]/g, '');
-    let exactMatchCandidate = currentCandidates.find(c => c.text === exactMatchText);
-    
-    if (exactMatchCandidate) {
-      const otherCandidates = currentCandidates.filter(c => c.text !== exactMatchText).slice(0, 14);
-      topCandidates = [exactMatchCandidate, ...otherCandidates];
-    } else {
-      exactMatchCandidate = {
-        text: exactMatchText,
-        score: 100,
-        source: 'Exact Match',
-        status: { domain: 'taken', instagram: 'taken', x: 'taken' },
-        bestTld: 'com',
-        isResolved: true,
-        finalScore: 0
-      };
-      currentCandidates.push(exactMatchCandidate);
-      const otherCandidates = currentCandidates.filter(c => c.text !== exactMatchText).slice(0, 14);
-      topCandidates = [exactMatchCandidate, ...otherCandidates];
-    }
-  } else {
-    topCandidates = currentCandidates.slice(0, 15);
   }
+  const igScore = results.socials.instagram && results.socials.instagram.status === 'available' ? 25 : 0;
+  const xScore = results.socials.x && results.socials.x.status === 'available' ? 25 : 0;
+  const availabilityScore = domainScore + igScore + xScore;
+  const relevanceScore = computeRelevanceScore(activeTransformedWord, currentContextChip || originalWord);
+  const finalScore = Math.round(availabilityScore * 0.5 + relevanceScore * 0.5);
 
-  // Re-render candidates in sorted order
-  renderCandidateCards(topCandidates);
-
-  // Set top sorted candidate as active
-  if (topCandidates.length > 0) {
-    const bestCandidate = topCandidates[0];
-    activeTransformedWord = bestCandidate.text;
-
-    // Highlight card
-    document.querySelectorAll('.option-card').forEach(el => el.classList.remove('active'));
-    const activeCard = document.getElementById(`candidate-card-${bestCandidate.text}`);
-    if (activeCard) {
-      activeCard.classList.add('active');
-    }
-
-    // Perform detailed checks
-    performDetailedBrandCheck(bestCandidate.text);
-  }
+  inputScoreBadge.textContent = `${finalScore}% Match`;
+  inputScoreBadge.className = 'input-score-badge';
+  inputScoreBadge.style.display = 'inline-flex';
 }
 
 // Perform full status checks for active focused candidate
@@ -436,69 +241,100 @@ async function performDetailedBrandCheck(name) {
   updateSummaryBar();
 }
 
-// Main check function
-async function performBrandCheck(description) {
-  if (!description) return;
-  
-  const thisSearchId = ++searchCounter;
-  originalWord = description;
-  activeTransformedWord = ''; // Clear active to prevent race conditions from previous checks
+// Rebuild the name/description chips row from current state
+function renderInputChips() {
+  const chipsContainer = document.getElementById('input-chips');
+  const footer = document.getElementById('chatbot-footer');
 
-  // AI Follow-up for short context (Chip Mode)
-  // Check if we don't already have a context chip and the input is 1-2 words
-  const wordCount = description.trim().split(/\s+/).length;
-  if (wordCount <= 2 && !currentContextChip) {
-    // Create chip
-    currentContextChip = description;
-    const chipsContainer = document.getElementById('input-chips');
-    
-    chipsContainer.innerHTML = `
-      <div class="context-chip">
-        ${description}
-        <button type="button" class="remove-chip" title="Remove"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-    `;
-    chipsContainer.style.display = 'flex';
-    document.getElementById('chatbot-footer').style.display = 'flex';
-
-    // Add remove listener
-    chipsContainer.querySelector('.remove-chip').addEventListener('click', () => {
-      currentContextChip = '';
-      chipsContainer.innerHTML = '';
-      chipsContainer.style.display = 'none';
-      document.getElementById('chatbot-footer').style.display = 'none';
-      resultsDashboard.classList.add('hidden');
-      brandInput.value = description; // Put it back so they don't lose it
-      brandInput.focus();
-    });
-
-    // Clear input and prompt for context
-    brandInput.value = '';
-    brandInput.setAttribute('placeholder', 'What does it do? (e.g. rental app)');
-    brandInput.focus();
-    
-    // Hide dashboard if it was open
-    resultsDashboard.classList.add('hidden');
-    
+  if (!currentContextChip) {
+    chipsContainer.innerHTML = '';
+    chipsContainer.style.display = 'none';
+    footer.style.display = 'none';
     return;
   }
 
-  // We are performing a real search now.
-  // Note: We DO NOT clear currentContextChip here anymore, so it acts as a breadcrumb!
-  const apiDescription = description;
+  const chips = [{ key: 'name', text: currentContextChip }];
+  if (currentDescriptionChip) chips.push({ key: 'description', text: currentDescriptionChip });
 
-  // Show loading state inside the lists while candidate checking occurs
-  bestOptionsList.innerHTML = `
-    <div style="padding: 1.5rem 0.25rem; color: var(--text-secondary); display:flex; align-items:center; gap:0.6rem;">
-      <i class="fa-solid fa-circle-notch fa-spin" style="color: var(--primary-blue);"></i>
-      <span style="font-size: 0.95rem;">Finding the best options...</span>
+  chipsContainer.innerHTML = chips.map(chip => `
+    <div class="context-chip">
+      ${chip.text}
+      <button type="button" class="remove-chip" data-chip="${chip.key}" title="Remove"><i class="fa-solid fa-xmark"></i></button>
     </div>
-  `;
-  // Clear previous results
-  assetsList.innerHTML = '';
+  `).join('');
+  chipsContainer.style.display = 'flex';
+  footer.style.display = 'flex';
 
-  // Generate candidates pool
-  renderSkeletons();
+  chipsContainer.querySelectorAll('.remove-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.getAttribute('data-chip') === 'name') {
+        // Removing the name chip resets back to the very start
+        const restoreText = currentContextChip;
+        currentContextChip = '';
+        currentDescriptionChip = '';
+        renderInputChips();
+        resultsDashboard.classList.add('hidden');
+        brandInput.setAttribute('placeholder', "What's your brand's name?");
+        brandInput.value = restoreText;
+      } else {
+        // Removing the description chip drops back to the "what does it do?" step
+        const restoreText = currentDescriptionChip;
+        currentDescriptionChip = '';
+        renderInputChips();
+        resultsDashboard.classList.add('hidden');
+        brandInput.setAttribute('placeholder', 'What does it do? (e.g. rental app)');
+        brandInput.value = restoreText;
+      }
+      searchForm.classList.remove('name-line-mode');
+      brandInput.focus();
+    });
+  });
+}
+
+// Main check function. rawInput is whatever the user just typed (may be empty
+// when re-submitting with chips already in place).
+function performBrandCheck(rawInput) {
+  const trimmedInput = (rawInput || '').trim();
+  if (!trimmedInput && !currentContextChip) return;
+
+  const wordCount = trimmedInput ? trimmedInput.split(/\s+/).length : 0;
+
+  // Stage 1: no name chip yet and this looks like a short name — chip it and ask what it does
+  if (!currentContextChip && wordCount > 0 && wordCount <= 2) {
+    currentContextChip = trimmedInput;
+    renderInputChips();
+    brandInput.value = '';
+    brandInput.setAttribute('placeholder', 'What does it do? (e.g. rental app)');
+    brandInput.focus();
+    resultsDashboard.classList.add('hidden');
+    return;
+  }
+
+  // Stage 2: name chip exists, no description chip yet — this input becomes the description chip
+  if (currentContextChip && !currentDescriptionChip && trimmedInput) {
+    currentDescriptionChip = trimmedInput;
+    renderInputChips();
+  } else if (currentContextChip && currentDescriptionChip && trimmedInput && trimmedInput !== currentContextChip) {
+    // Stage 3: both chips already existed — the new text is a fresh brand name to check,
+    // replacing the old name chip while the description stays fixed
+    currentContextChip = trimmedInput;
+    renderInputChips();
+  }
+
+  // We are performing a real search now — directly against the name typed/chosen,
+  // no AI-generated alternates to browse anymore.
+  const apiDescription = [currentContextChip, currentDescriptionChip].filter(Boolean).join(' ') || trimmedInput;
+  originalWord = currentContextChip || apiDescription;
+  activeTransformedWord = originalWord;
+
+  // Once both chips exist, the input drops to a plain line showing the active name
+  if (currentContextChip && currentDescriptionChip) {
+    searchForm.classList.add('name-line-mode');
+    brandInput.removeAttribute('placeholder');
+  }
+  brandInput.value = activeTransformedWord;
+  brandInput.style.height = 'auto';
+  brandInput.focus();
 
   // Reset cart selection state
   cart = {
@@ -510,70 +346,7 @@ async function performBrandCheck(description) {
   // Show dashboard (tiles are already visible above, no scroll needed)
   resultsDashboard.classList.remove('hidden');
 
-  try {
-    const response = await fetch(`${API_BASE}/api/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        description: apiDescription,
-        baseName: currentContextChip || ''
-      })
-    });
-    
-    if (thisSearchId !== searchCounter) return;
-
-    if (!response.ok) {
-      throw new Error('Failed to generate brand names.');
-    }
-    
-    const data = await response.json();
-    currentCandidates = data.candidates || [];
-
-    // Prepend the exact match candidate for brand searches (<= 3 words) so it gets checked in parallel
-    const isBrandSearch = apiDescription.trim().split(/\s+/).length <= 3;
-    if (isBrandSearch) {
-      const exactMatchText = apiDescription.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (exactMatchText) {
-        const exists = currentCandidates.some(c => c.text === exactMatchText);
-        if (!exists) {
-          currentCandidates.unshift({
-            text: exactMatchText,
-            score: 100,
-            source: 'Exact Match'
-          });
-        }
-      }
-    }
-
-    // Immediately start detailed checks on the first candidate so
-    // domains/socials populate right away without waiting for all scoring
-    if (currentCandidates.length > 0) {
-      const firstCandidate = currentCandidates[0];
-      activeTransformedWord = firstCandidate.text;
-      initDashboardDisplay(firstCandidate.text);
-
-      // Render the first card immediately so user sees something
-      renderCandidateCards(currentCandidates.slice(0, 15));
-      const firstCard = document.getElementById(`candidate-card-${firstCandidate.text}`);
-      if (firstCard) firstCard.classList.add('active');
-
-      // Kick off domain/social checks for the first candidate immediately
-      checkAllDomains(firstCandidate.text);
-      checkAllSocials(firstCandidate.text);
-    }
-
-    runBackgroundScoring(currentCandidates, thisSearchId);
-  } catch (err) {
-    if (thisSearchId !== searchCounter) return;
-    bestOptionsList.innerHTML = `
-      <div style="padding: 2rem; text-align: center; color: var(--text-secondary); width: 100%;">
-        <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem; margin-bottom: 0.75rem; color: #ef4444;"></i>
-        <p style="font-size: 0.95rem;">Error: ${err.message || 'Failed to connect to Hatch AI server.'}</p>
-      </div>
-    `;
-  }
+  performDetailedBrandCheck(activeTransformedWord);
 }
 
 // Populate dashboard with initial "Checking..." status rows
@@ -584,37 +357,45 @@ function initDashboardDisplay(name) {
     <div class="summary-metric"><i class="fa-solid fa-spinner fa-spin"></i> Checking availability...</div>
   `;
 
-  // Initialize Domains list
+  // Initialize the single Domain row with a TLD picker (one row, all extensions checked in the background)
+  selectedTld = 'com';
   DOMAINS.forEach(tld => {
-    const domain = `${name}.${tld}`;
-    results.domains[tld] = { domain, status: 'checking' };
-    
-    const row = document.createElement('div');
-    row.className = 'result-item';
-    row.id = `domain-${tld}`;
-    row.dataset.type = 'domain';
-    row.dataset.id = tld;
-    row.innerHTML = `
-      <div class="item-left">
-        <div class="item-platform-icon"><i class="fa-solid fa-globe"></i></div>
-        <span class="item-name">${domain}</span>
-      </div>
-      <div class="item-right">
-        <span class="status-badge checking">
-          <i class="fa-solid fa-circle-notch fa-spin"></i> Checking
-        </span>
-        <button class="row-action-btn disabled" disabled>
-          <i class="fa-solid fa-minus"></i>
-        </button>
-      </div>
-    `;
-    assetsList.appendChild(row);
+    results.domains[tld] = { domain: `${name}.${tld}`, status: 'checking' };
   });
+
+  const domainRow = document.createElement('div');
+  domainRow.className = 'result-item';
+  domainRow.id = 'domain-row';
+  domainRow.dataset.type = 'domain';
+  domainRow.innerHTML = `
+    <div class="item-left">
+      <div class="item-platform-icon"><i class="fa-solid fa-globe"></i></div>
+      <div class="item-name-block">
+        <span class="item-name">${name}</span>
+        <select class="tld-select" id="tld-select">
+          ${DOMAINS.map(tld => `<option value="${tld}" ${tld === selectedTld ? 'selected' : ''}>${tldOptionLabel(tld)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="item-right">
+      <span class="status-badge checking">
+        <i class="fa-solid fa-circle-notch fa-spin"></i> Checking
+      </span>
+      <button class="row-action-btn disabled" disabled>
+        <i class="fa-solid fa-minus"></i>
+      </button>
+    </div>
+  `;
+  domainRow.querySelector('#tld-select').addEventListener('change', (e) => {
+    selectedTld = e.target.value;
+    renderSelectedDomainStatus();
+  });
+  assetsList.appendChild(domainRow);
 
   // Initialize Socials list
   SOCIALS.forEach(platform => {
     results.socials[platform.id] = { handle: name, status: 'checking' };
-    
+
     const row = document.createElement('div');
     row.className = 'result-item';
     row.id = `social-${platform.id}`;
@@ -623,7 +404,15 @@ function initDashboardDisplay(name) {
     row.innerHTML = `
       <div class="item-left">
         <div class="item-platform-icon"><i class="${platform.icon}"></i></div>
-        <span class="item-name">${platform.name}</span>
+        <div class="item-name-block">
+          <span class="item-name">${platform.name}</span>
+          <span class="item-handle-row">
+            <span class="item-handle" data-id="${platform.id}">@${name}</span>
+            <button type="button" class="edit-handle-btn" data-id="${platform.id}" title="Use a different handle on ${platform.name}" aria-label="Edit handle for ${platform.name}">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </span>
+        </div>
       </div>
       <div class="item-right">
         <span class="status-badge checking">
@@ -638,103 +427,223 @@ function initDashboardDisplay(name) {
   });
 }
 
+// Track in-flight per-row handle checks so stale responses can't clobber a newer edit
+const handleEditCounter = {};
+
+// Swap a social row's handle label for an inline input
+function startEditingHandle(platformId) {
+  const row = document.getElementById(`social-${platformId}`);
+  if (!row) return;
+  const handleRow = row.querySelector('.item-handle-row');
+  if (!handleRow) return;
+  const currentHandle = results.socials[platformId].handle;
+
+  handleRow.innerHTML = `<input type="text" class="item-handle-input" value="${currentHandle}" />`;
+  const input = handleRow.querySelector('.item-handle-input');
+  input.focus();
+  input.select();
+
+  // Replacing the row's HTML below removes this input, which fires a synchronous
+  // native blur on it — re-entering this handler while the first commit is still
+  // running. Guard so only the first commit (Enter or blur) actually applies.
+  let committed = false;
+
+  const commit = () => {
+    if (committed) return;
+    committed = true;
+    const newHandle = input.value.trim().replace(/^@/, '');
+    finishEditingHandle(platformId, newHandle || currentHandle);
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      committed = true;
+      finishEditingHandle(platformId, currentHandle);
+    }
+  });
+  input.addEventListener('blur', commit);
+}
+
+// Restore the static handle label + edit button for a social row
+function renderHandleRow(platformId) {
+  const row = document.getElementById(`social-${platformId}`);
+  if (!row) return;
+  const handleRow = row.querySelector('.item-handle-row');
+  if (!handleRow) return;
+  const platform = SOCIALS.find(p => p.id === platformId);
+
+  handleRow.innerHTML = `
+    <span class="item-handle" data-id="${platformId}">@${results.socials[platformId].handle}</span>
+    <button type="button" class="edit-handle-btn" data-id="${platformId}" title="Use a different handle on ${platform ? platform.name : platformId}" aria-label="Edit handle">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+  `;
+}
+
+// Apply an edited handle for a single platform and re-check just that row
+function finishEditingHandle(platformId, newHandle) {
+  const platform = SOCIALS.find(p => p.id === platformId);
+  if (!platform) return;
+
+  const changed = results.socials[platformId].handle !== newHandle;
+  results.socials[platformId].handle = newHandle;
+  renderHandleRow(platformId);
+
+  if (!changed) return;
+
+  results.socials[platformId].status = 'checking';
+  const row = document.getElementById(`social-${platformId}`);
+  const rightArea = row ? row.querySelector('.item-right') : null;
+  if (rightArea) {
+    rightArea.innerHTML = `
+      <span class="status-badge checking"><i class="fa-solid fa-circle-notch fa-spin"></i> Checking</span>
+      <button class="row-action-btn disabled" disabled><i class="fa-solid fa-minus"></i></button>
+    `;
+  }
+
+  checkSingleSocial(platform, newHandle);
+}
+
+// Check availability for one platform + handle, independent of the active candidate
+async function checkSingleSocial(platform, handle) {
+  const requestToken = (handleEditCounter[platform.id] = (handleEditCounter[platform.id] || 0) + 1);
+  try {
+    const response = await fetch(`${API_BASE}/api/check-social?platform=${platform.id}&handle=${handle}`);
+    const data = await response.json();
+    if (handleEditCounter[platform.id] !== requestToken) return;
+    if (results.socials[platform.id].handle !== handle) return;
+
+    results.socials[platform.id].status = data.status;
+    updateItemStatus('social', platform.id, data.status);
+  } catch (err) {
+    if (handleEditCounter[platform.id] !== requestToken) return;
+    if (results.socials[platform.id].handle !== handle) return;
+    results.socials[platform.id].status = 'unknown';
+    updateItemStatus('social', platform.id, 'unknown');
+  }
+  updateSummaryBar();
+}
+
 // Trigger checks for domains and update GUI on response
 function checkAllDomains(name) {
-  let checkedCount = 0;
   return DOMAINS.map(async (tld) => {
     const domain = `${name}.${tld}`;
     try {
       const response = await fetch(`${API_BASE}/api/check-domain?domain=${domain}`);
       const data = await response.json();
       if (name !== activeTransformedWord) return;
-      
+
       results.domains[tld].status = data.status;
-      
-      // Auto-select behavior removed per user request
-      if (data.status === 'available') {
-        // Update active candidate if this TLD is better than the current best TLD
-        const activeC = currentCandidates.find(c => c.text === name);
-        if (activeC) {
-          const priorityTlds = ['com', 'co', 'io', 'ai', 'app', 'net', 'org'];
-          const currentIdx = priorityTlds.indexOf(activeC.bestTld || 'com');
-          const newIdx = priorityTlds.indexOf(tld);
-          if (activeC.status.domain !== 'available' || newIdx < currentIdx || activeC.bestTld === undefined) {
-            activeC.bestTld = tld;
-            activeC.status.domain = 'available';
-          }
-          recalculateCandidateScore(activeC);
-        }
-      } else {
-        const activeC = currentCandidates.find(c => c.text === name);
-        if (activeC) {
-          if (activeC.bestTld === tld) {
-            activeC.status.domain = 'taken';
-            const priorityTlds = ['com', 'co', 'io', 'ai', 'app', 'net', 'org'];
-            let found = false;
-            for (const t of priorityTlds) {
-              if (results.domains[t] && results.domains[t].status === 'available') {
-                activeC.bestTld = t;
-                activeC.status.domain = 'available';
-                found = true;
-                break;
-              }
-            }
-            if (!found) {
-              activeC.bestTld = 'com';
-              activeC.status.domain = 'taken';
-            }
-          }
-          recalculateCandidateScore(activeC);
-        }
-      }
-      
-      updateItemStatus('domain', tld, data.status);
+      renderTldSelectOptions();
+      if (tld === selectedTld) renderSelectedDomainStatus();
     } catch (err) {
       if (name !== activeTransformedWord) return;
       results.domains[tld].status = 'unknown';
-      updateItemStatus('domain', tld, 'unknown');
+      renderTldSelectOptions();
+      if (tld === selectedTld) renderSelectedDomainStatus();
     }
-    checkedCount++;
 
     updateSummaryBar();
   });
 }
 
+// Label shown for one TLD option in the extension picker, e.g. ".com — Available"
+function tldOptionLabel(tld) {
+  const info = results.domains[tld];
+  const status = info ? info.status : 'checking';
+  const statusText = status === 'available' ? 'Available'
+    : status === 'taken' ? 'Taken'
+    : status === 'checking' ? 'Checking…'
+    : 'Unknown';
+  return `.${tld} — ${statusText}`;
+}
+
+// Rebuild the extension picker's option labels as background checks resolve
+function renderTldSelectOptions() {
+  const select = document.getElementById('tld-select');
+  if (!select) return;
+  select.innerHTML = DOMAINS.map(tld =>
+    `<option value="${tld}" ${tld === selectedTld ? 'selected' : ''}>${tldOptionLabel(tld)}</option>`
+  ).join('');
+}
+
+// Render the status badge + action button for whichever TLD is currently selected
+function renderSelectedDomainStatus() {
+  const row = document.getElementById('domain-row');
+  if (!row) return;
+  const rightArea = row.querySelector('.item-right');
+  if (!rightArea) return;
+
+  const info = results.domains[selectedTld];
+  const status = info ? info.status : 'checking';
+  const domainName = info ? info.domain : `${activeTransformedWord}.${selectedTld}`;
+
+  let rightHtml = '';
+  row.style.opacity = '1';
+
+  if (status === 'checking') {
+    rightHtml = `
+      <span class="status-badge checking">
+        <i class="fa-solid fa-circle-notch fa-spin"></i> Checking
+      </span>
+      <button class="row-action-btn disabled" disabled>
+        <i class="fa-solid fa-minus"></i>
+      </button>
+    `;
+  } else if (status === 'available') {
+    const isSelected = cart.domains.includes(domainName);
+    rightHtml = `
+      <span class="status-badge available">Available</span>
+      <button class="row-action-btn toggle-cart-btn ${isSelected ? 'in-cart' : ''}"
+              data-type="domain"
+              data-name="${domainName}"
+              title="${isSelected ? 'Remove from bundle' : 'Add to bundle'}">
+        <i class="fa-solid ${isSelected ? 'fa-check' : 'fa-plus'}"></i>
+      </button>
+    `;
+  } else if (status === 'taken') {
+    rightHtml = `
+      <span class="status-badge taken">Taken</span>
+      <a href="http://${domainName}" target="_blank" rel="noopener noreferrer" class="row-action-btn" aria-label="Visit domain">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    `;
+    row.style.opacity = '0.4';
+  } else {
+    rightHtml = `
+      <span class="status-badge unknown">Unknown</span>
+      <a href="https://domains.squarespace.com/" target="_blank" rel="noopener noreferrer" class="row-action-btn" title="Verify manually">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    `;
+  }
+
+  rightArea.innerHTML = rightHtml;
+  sortAssetsList();
+}
+
 // Trigger checks for socials and update GUI on response
 function checkAllSocials(name) {
-  let checkedCount = 0;
   return SOCIALS.map(async (platform) => {
     try {
       const response = await fetch(`${API_BASE}/api/check-social?platform=${platform.id}&handle=${name}`);
       const data = await response.json();
       if (name !== activeTransformedWord) return;
+      // Bail if this row's handle was independently edited while the request was in flight
+      if (results.socials[platform.id].handle !== name) return;
 
       results.socials[platform.id].status = data.status;
-      
-      // Auto-select behavior removed per user request
-      if (data.status === 'available') {
-        // Fall through
-      }
-
-      // Update active candidate status
-      const activeC = currentCandidates.find(c => c.text === name);
-      if (activeC) {
-        if (platform.id === 'instagram') {
-          activeC.status.instagram = data.status;
-          recalculateCandidateScore(activeC);
-        } else if (platform.id === 'x') {
-          activeC.status.x = data.status;
-          recalculateCandidateScore(activeC);
-        }
-      }
-      
       updateItemStatus('social', platform.id, data.status);
     } catch (err) {
       if (name !== activeTransformedWord) return;
+      if (results.socials[platform.id].handle !== name) return;
       results.socials[platform.id].status = 'unknown';
       updateItemStatus('social', platform.id, 'unknown');
     }
-    checkedCount++;
 
     updateSummaryBar();
   });
@@ -760,7 +669,8 @@ function sortAssetsList() {
   items.forEach(item => assetsList.appendChild(item));
 }
 
-// Update single item status node in GUI
+// Update a single social row's status node in the GUI (domain status is rendered
+// separately by renderSelectedDomainStatus, since domains share one row with a TLD picker)
 function updateItemStatus(type, id, status) {
   const element = document.getElementById(`${type}-${id}`);
   if (!element) return;
@@ -769,79 +679,49 @@ function updateItemStatus(type, id, status) {
   if (!rightArea) return;
 
   let rightHtml = '';
-  
-  if (type === 'domain') {
-    const domainName = `${activeTransformedWord}.${id}`;
-    if (status === 'available') {
-      const isSelected = cart.domains.includes(domainName);
-      rightHtml = `
-        <span class="status-badge available">Available</span>
-        <button class="row-action-btn toggle-cart-btn ${isSelected ? 'in-cart' : ''}" 
-                data-type="domain" 
-                data-name="${domainName}" 
-                title="${isSelected ? 'Remove from bundle' : 'Add to bundle'}">
-          <i class="fa-solid ${isSelected ? 'fa-check' : 'fa-plus'}"></i>
-        </button>
-      `;
-    } else if (status === 'taken') {
-      rightHtml = `
-        <span class="status-badge taken">Taken</span>
-        <a href="http://${domainName}" target="_blank" rel="noopener noreferrer" class="row-action-btn" aria-label="Visit domain">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>
-      `;
-      element.style.opacity = '0.4';
-    } else {
-      rightHtml = `
-        <span class="status-badge unknown">Unknown</span>
-        <a href="https://domains.squarespace.com/" target="_blank" rel="noopener noreferrer" class="row-action-btn" title="Verify manually">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>
-      `;
-    }
-  } else {
-    // Social profiles
-    const platform = SOCIALS.find(p => p.id === id);
-    const handleName = results.socials[id].handle;
-    const url = platform ? `${platform.urlPrefix}${handleName}` : '#';
 
-    if (status === 'available') {
-      const isSelected = cart.socials.includes(id);
-      rightHtml = `
-        <span class="status-badge available">Available</span>
-        <button class="row-action-btn toggle-cart-btn ${isSelected ? 'in-cart' : ''}" 
-                data-type="social" 
-                data-id="${id}" 
-                title="${isSelected ? 'Remove from bundle' : 'Add to bundle'}">
-          <i class="fa-solid ${isSelected ? 'fa-check' : 'fa-plus'}"></i>
-        </button>
-      `;
-    } else if (status === 'taken') {
-      rightHtml = `
-        <span class="status-badge taken">Taken</span>
-        <a href="${url}" target="_blank" rel="noopener noreferrer" class="row-action-btn" aria-label="View profile">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>
-      `;
-      element.style.opacity = '0.4';
-    } else {
-      rightHtml = `
-        <span class="status-badge unknown">Unknown</span>
-        <a href="${url}" target="_blank" rel="noopener noreferrer" class="row-action-btn" aria-label="View profile">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>
-      `;
-    }
+  const platform = SOCIALS.find(p => p.id === id);
+  const handleName = results.socials[id].handle;
+  const url = platform ? `${platform.urlPrefix}${handleName}` : '#';
+
+  if (status === 'available') {
+    const isSelected = cart.socials.includes(id);
+    rightHtml = `
+      <span class="status-badge available">Available</span>
+      <button class="row-action-btn toggle-cart-btn ${isSelected ? 'in-cart' : ''}"
+              data-type="social"
+              data-id="${id}"
+              title="${isSelected ? 'Remove from bundle' : 'Add to bundle'}">
+        <i class="fa-solid ${isSelected ? 'fa-check' : 'fa-plus'}"></i>
+      </button>
+    `;
+  } else if (status === 'taken') {
+    rightHtml = `
+      <span class="status-badge taken">Taken</span>
+      <a href="${url}" target="_blank" rel="noopener noreferrer" class="row-action-btn" aria-label="View profile">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    `;
+    element.style.opacity = '0.4';
+  } else {
+    rightHtml = `
+      <span class="status-badge unknown">Unknown</span>
+      <a href="${url}" target="_blank" rel="noopener noreferrer" class="row-action-btn" aria-label="View profile">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </a>
+    `;
   }
 
   rightArea.innerHTML = rightHtml;
-  
+
   // Sort the list so available items bubble up and taken items drop down
   sortAssetsList();
 }
 
 // Update the real-time summary statistics bar
 function updateSummaryBar() {
+  updateInputScoreBadge();
+
   let available = 0;
   let taken = 0;
   let unknown = 0;
@@ -1064,6 +944,13 @@ function openBrandPackModal() {
   // Show Modal
   brandPackModal.classList.remove('hidden');
 }
+
+// Delegate handle editing (click the pencil or the handle text itself)
+resultsDashboard.addEventListener('click', (e) => {
+  const editTrigger = e.target.closest('.edit-handle-btn, .item-handle');
+  if (!editTrigger) return;
+  startEditingHandle(editTrigger.getAttribute('data-id'));
+});
 
 // Delegate cart selection toggling
 resultsDashboard.addEventListener('click', (e) => {

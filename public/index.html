@@ -4,182 +4,469 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project One</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --gold: #c9a96e;
+      --gold-light: #dfc9a0;
+      --cream: #f5f0e8;
+      --text-muted: #8a8a8a;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
+    html { scroll-behavior: smooth; }
+
     body {
-      background: linear-gradient(135deg, #f8f7f5, #ede9e3, #f4f1ee, #fafafa, #ede8e1);
-      background-size: 400% 400%;
-      animation: gradientShift 12s ease infinite;
-      color: #0a0a0a;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 3rem 1.5rem;
+      background: var(--black);
+      color: var(--cream);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
     .noise {
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
       pointer-events: none;
-      z-index: 10;
+      z-index: 9999;
     }
 
-    .container {
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1.5rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.4s ease;
+    }
+
+    .nav.scrolled {
+      background: rgba(10, 10, 10, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--cream);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .btn-signin {
+      background: transparent;
+      border: 1px solid rgba(245,240,232,0.25);
+      color: var(--cream);
+      padding: 0.5rem 1.4rem;
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-signin:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 35%;
+      filter: brightness(0.65) saturate(1.1);
+      animation: kenBurns 25s ease infinite alternate;
+    }
+
+    @keyframes kenBurns {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .hero-gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center, rgba(10,10,10,0.2) 0%, rgba(10,10,10,0.6) 100%),
+        linear-gradient(to bottom, rgba(10,10,10,0.3) 0%, transparent 30%, transparent 60%, rgba(10,10,10,0.8) 100%);
+    }
+
+    .hero-content {
       position: relative;
       z-index: 2;
-      text-align: center;
+      padding: 0 2rem;
+      max-width: 800px;
     }
 
-    h1 {
-      font-family: 'HTF Didot', 'Didot', 'GFS Didot', 'Bodoni MT', 'Playfair Display', serif;
-      font-size: clamp(5rem, 14vw, 14rem);
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(3.5rem, 8vw, 7rem);
       font-weight: 400;
-      line-height: 0.88;
+      line-height: 1.0;
       letter-spacing: -0.02em;
-      background: linear-gradient(120deg, #0a0a0a, #3a3a3a, #111, #555, #1a1a1a, #0a0a0a);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: fadeUp 1.2s ease 0.4s forwards, textGradient 8s ease infinite;
-      opacity: 0;
-    }
-
-    h1 span {
-      display: block;
-    }
-
-    h1 .word-one {
-      font-style: italic;
-    }
-
-    .loop {
-      margin-top: 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      gap: 0.6rem;
-      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: clamp(0.65rem, 1vw, 0.78rem);
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(10,10,10,0.55);
-      opacity: 0;
-      animation: fadeUp 1.2s ease 1.1s forwards;
-    }
-
-    .loop .arrow {
-      color: rgba(10,10,10,0.25);
-    }
-
-    .badge {
-      display: inline-block;
+      color: var(--cream);
       margin-bottom: 1.5rem;
-      padding: 0.35rem 0.9rem;
-      border: 1px solid rgba(10,10,10,0.15);
-      border-radius: 999px;
-      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 0.7rem;
-      font-weight: 500;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: rgba(10,10,10,0.5);
       opacity: 0;
-      animation: fadeUp 1.2s ease 0s forwards;
+      animation: fadeUp 1.2s ease 0.3s forwards;
     }
 
-    .links {
-      margin-top: 3rem;
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero-sub {
+      font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+      font-weight: 300;
+      line-height: 1.7;
+      color: rgba(245,240,232,0.6);
+      max-width: 440px;
+      margin: 0 auto 3rem;
+      opacity: 0;
+      animation: fadeUp 1.2s ease 0.6s forwards;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--black);
+      padding: 1rem 3rem;
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      opacity: 0;
+      animation: fadeUp 1.2s ease 0.9s forwards;
+    }
+
+    .hero-cta:hover {
+      background: var(--gold-light);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(201,169,110,0.2);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1.15rem;
-    }
-
-    .launcher-link {
-      display: inline-block;
-      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #0a0a0a;
-      text-decoration: none;
-      transition: all 0.2s ease;
+      gap: 0.5rem;
       opacity: 0;
-      animation: fadeUp 1.2s ease 1.5s forwards;
+      animation: fadeUp 1.2s ease 1.4s forwards;
     }
 
-    .launcher-link:hover {
-      opacity: 0.6;
-      transform: translateY(-2px);
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: scrollPulse 2s ease infinite;
     }
 
-    .launcher-primary {
-      padding: 0.75rem 1.7rem;
-      border: 1px solid rgba(10,10,10,0.8);
-      border-radius: 999px;
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+
+    /* ── SIGNUP ── */
+    .signup {
+      padding: 7rem 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .signup-card {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .signup-card h2 {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+
+    .signup-desc {
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+    }
+
+    .signup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      text-align: left;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex: 1;
+    }
+
+    .form-group label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .form-group input,
+    .form-group select {
+      background: rgba(245,240,232,0.06);
+      border: 1px solid rgba(245,240,232,0.1);
+      color: var(--cream);
+      font-family: var(--sans);
       font-size: 0.9rem;
+      font-weight: 300;
+      padding: 0.8rem 1rem;
+      outline: none;
+      transition: border-color 0.3s;
     }
 
-    .launcher-primary:hover {
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--gold);
+    }
+
+    .form-group input::placeholder {
+      color: rgba(245,240,232,0.25);
+    }
+
+    .form-group select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a8a8a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.5rem;
+    }
+
+    .form-group select option {
+      background: #1a1a1a;
+      color: var(--cream);
+    }
+
+    .signup-form .hero-cta {
+      width: 100%;
+      text-align: center;
+      margin-top: 0.5rem;
       opacity: 1;
-      background: #0a0a0a;
-      color: #faf9f6;
+      animation: none;
     }
 
-    .launcher-secondary {
-      font-size: 0.8rem;
-      color: rgba(10,10,10,0.5);
+    .form-note {
+      font-size: 0.7rem;
+      color: rgba(245,240,232,0.25);
+      text-align: center;
+      margin-top: 0.25rem;
     }
 
-    @keyframes textGradient {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    /* ── DIVIDER ── */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.3;
+      margin: 0 auto;
     }
 
-    @keyframes gradientShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    /* ── FOOTER ── */
+    .footer {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid rgba(245,240,232,0.06);
     }
 
+    .footer-brand {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-copy {
+      font-size: 0.7rem;
+      color: rgba(245,240,232,0.2);
+    }
+
+    /* ── ANIMATIONS ── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .nav { padding: 1rem 1.25rem; }
+      .hero-content { padding: 0 1.25rem; }
+      .signup { padding: 5rem 1.25rem; }
+      .form-row { flex-direction: column; }
     }
   </style>
 </head>
 <body>
   <div class="noise"></div>
-  <div class="container">
-    <span class="badge">Coming soon</span>
-    <h1>
-      <span class="word-project">Project</span>
-      <span class="word-one">One</span>
-    </h1>
 
-    <div class="loop">
-      <span>Nearby</span>
-      <span class="arrow">&rarr;</span>
-      <span>Offer</span>
-      <span class="arrow">&rarr;</span>
-      <span>Connect</span>
-      <span class="arrow">&rarr;</span>
-      <span>Collab</span>
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-logo">Project One</a>
+    <div class="nav-right">
+      <a href="/members.html" class="btn-signin">Sign In</a>
     </div>
+  </nav>
 
-    <div class="links">
-      <a href="/collab.html" class="launcher-link launcher-primary">Enter the Collab &rarr;</a>
-      <a href="/checker.html" class="launcher-link launcher-secondary">Launch Brand Engine &rarr;</a>
+  <section class="hero">
+    <img
+      class="hero-media"
+      src="https://d8j0ntlcm91z4.cloudfront.net/user_3CRsFxxzIv3P79pZzvFmWdlFTr0/hf_20260721_185056_e248cbe9-01b3-4345-aff8-dc33cdd366ba.png"
+      alt=""
+    >
+    <div class="hero-gradient"></div>
+    <div class="hero-content">
+      <h1>Build different,<br><em>together</em></h1>
+      <p class="hero-sub">
+        The private club for entrepreneurs and creatives
+        who move with intention.
+      </p>
+      <a href="#join" class="hero-cta">Get Access</a>
     </div>
-  </div>
+    <div class="scroll-hint">
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <section class="signup" id="join">
+    <div class="signup-card">
+      <h2>Request an invitation</h2>
+      <p class="signup-desc">
+        Tell us what you're building. Selected members
+        get access within 48 hours.
+      </p>
+      <form class="signup-form" id="signup-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="first-name">First Name</label>
+            <input type="text" id="first-name" placeholder="Jordan" required>
+          </div>
+          <div class="form-group">
+            <label for="last-name">Last Name</label>
+            <input type="text" id="last-name" placeholder="Ellis" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="jordan@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="focus">What are you building?</label>
+          <select id="focus" required>
+            <option value="" disabled selected>Select your focus</option>
+            <option value="brand">A brand or product</option>
+            <option value="creative">Creative work</option>
+            <option value="tech">A tech product</option>
+            <option value="service">A service business</option>
+            <option value="community">A community</option>
+            <option value="other">Something else</option>
+          </select>
+        </div>
+        <button type="submit" class="hero-cta">Submit Application</button>
+        <p class="form-note">Free during early access. No spam.</p>
+      </form>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-brand">Project One</div>
+    <p class="footer-sub">Build. Connect. Move together.</p>
+    <p class="footer-copy">&copy; 2026 Project One</p>
+  </footer>
+
+  <script>
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.textContent = 'You\'re on the list';
+      btn.style.background = '#0f6e56';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = 'Submit Application';
+        btn.style.background = '';
+        btn.disabled = false;
+        e.target.reset();
+      }, 3000);
+    });
+  </script>
 </body>
 </html>
