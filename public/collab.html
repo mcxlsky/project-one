@@ -562,7 +562,8 @@
 
     // ---------- actions ----------
     async function createProfile(form) {
-      const handle = form.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const base = form.name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const handle = base + '_' + Math.random().toString(36).slice(2, 7);
       const payload = {
         handle: handle,
         name: form.name.trim(),
@@ -1054,7 +1055,7 @@
       async function handleNext() {
         if (advancing) return;
         advancing = true;
-        try { await _handleNext(); } catch(e) { console.error(e); } finally { setTimeout(() => { advancing = false; }, 0); }
+        try { await _handleNext(); } catch(e) { console.error(e); } finally { advancing = false; }
       }
       async function _handleNext() {
         if (step === 0) {
